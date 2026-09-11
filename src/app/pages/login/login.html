@@ -1,1 +1,65 @@
-<p>login works!</p>
+<div class="ecran">
+  <section class="carte">
+    <div class="carte__entete">
+        <img src="assets/isi.jpg" alt="Logo ISI" class="logo-image" />
+      <h1 class="carte__titre">Connexion</h1>
+    </div>
+    <p class="carte__soustitre">Accédez à votre espace selon votre rôle.</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="formulaire">
+      <div class="champ">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="username"
+          placeholder="prenom.nom@etablissement.edu"
+        />
+        @if (form.controls.email.invalid && form.controls.email.touched) {
+          <p class="champ__erreur">
+            @if (form.controls.email.errors?.['required']) {
+              L'adresse e-mail est requise.
+            } @else {
+              Entrez une adresse e-mail valide.
+            }
+          </p>
+        }
+      </div>
+
+      <div class="champ">
+        <label for="motDePasse">Mot de passe</label>
+        <div class="champ__mot-de-passe">
+          <input
+            id="motDePasse"
+            [type]="motDePasseVisible() ? 'text' : 'password'"
+            formControlName="motDePasse"
+            autocomplete="current-password"
+            placeholder="••••••••"
+          />
+          <button
+            type="button"
+            class="champ__bascule"
+            (click)="basculerVisibiliteMotDePasse()"
+            [attr.aria-pressed]="motDePasseVisible()"
+          >
+            {{ motDePasseVisible() ? 'Masquer' : 'Afficher' }}
+          </button>
+        </div>
+        @if (form.controls.motDePasse.invalid && form.controls.motDePasse.touched) {
+          <p class="champ__erreur">Le mot de passe doit contenir au moins 4 caractères.</p>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <p class="formulaire__erreur-globale" role="alert">{{ errorMessage() }}</p>
+      }
+
+      <button type="submit" class="bouton-principal" [disabled]="isSubmitting()">
+        {{ isSubmitting() ? 'Connexion en cours…' : 'Se connecter' }}
+      </button>
+
+      <a href="#" class="lien-discret">Mot de passe oublié ?</a>
+    </form>
+  </section>
+</div>
