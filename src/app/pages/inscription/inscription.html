@@ -1,0 +1,90 @@
+<div class="ecran">
+  <section class="carte">
+    <div class="carte__entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-image" />
+      <h1 class="carte__titre">Créer un compte</h1>
+    </div>
+
+    @if (!compteCree()) {
+      <p class="carte__soustitre">Je suis</p>
+
+      <div class="roles" role="radiogroup" aria-label="Je suis">
+        <button
+          type="button"
+          class="role"
+          [class.role--actif]="roleSelectionne() === 'etudiant'"
+          [attr.aria-pressed]="roleSelectionne() === 'etudiant'"
+          (click)="choisirRole('etudiant')"
+        >
+          <span class="role__icone" aria-hidden="true">🎓</span>
+          Étudiant
+        </button>
+        <button
+          type="button"
+          class="role"
+          [class.role--actif]="roleSelectionne() === 'enseignant'"
+          [attr.aria-pressed]="roleSelectionne() === 'enseignant'"
+          (click)="choisirRole('enseignant')"
+        >
+          <span class="role__icone" aria-hidden="true">🖥️</span>
+          Enseignant
+        </button>
+        <button
+          type="button"
+          class="role"
+          [class.role--actif]="roleSelectionne() === 'parent'"
+          [attr.aria-pressed]="roleSelectionne() === 'parent'"
+          (click)="choisirRole('parent')"
+        >
+          Parent
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="formulaire">
+        <div class="champ">
+          <label for="nomComplet">Nom complet</label>
+          <input id="nomComplet" type="text" formControlName="nomComplet" placeholder="Korka Bal" />
+          @if (form.controls.nomComplet.invalid && form.controls.nomComplet.touched) {
+            <p class="champ__erreur">Le nom complet est requis.</p>
+          }
+        </div>
+
+        <div class="champ">
+          <label for="email">Adresse e-mail</label>
+          <input id="email" type="email" formControlName="email" placeholder="korkabal@gmail.com" />
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+            <p class="champ__erreur">Entrez une adresse e-mail valide.</p>
+          }
+        </div>
+
+        <div class="champ-ligne">
+          <div class="champ">
+            <label for="motDePasse">Mot de passe</label>
+            <input id="motDePasse" type="password" formControlName="motDePasse" placeholder="••••••••" />
+          </div>
+          <div class="champ">
+            <label for="confirmation">Confirmation</label>
+            <input id="confirmation" type="password" formControlName="confirmation" placeholder="••••••••" />
+          </div>
+        </div>
+        @if (form.errors?.['motsDePasseDifferents'] && form.controls.confirmation.touched) {
+          <p class="champ__erreur">Les mots de passe ne correspondent pas.</p>
+        }
+
+        <button type="submit" class="bouton-principal" [disabled]="isSubmitting()">
+          {{ isSubmitting() ? 'Création en cours…' : 'Créer mon compte' }}
+        </button>
+
+        <a routerLink="/login" class="lien-discret">Déjà un compte ? Se connecter</a>
+      </form>
+    } @else {
+      <div class="confirmation">
+        <p class="confirmation__texte">
+          Votre compte a été créé et est <strong>en attente de validation</strong> par un administrateur.
+          Vous recevrez un accès dès son activation.
+        </p>
+        <a routerLink="/login" class="bouton-principal bouton-principal--lien">Retour à la connexion</a>
+      </div>
+    }
+  </section>
+</div>

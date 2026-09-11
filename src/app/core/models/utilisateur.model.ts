@@ -18,3 +18,14 @@ export interface SessionUtilisateur {
   nom: string;
   prenom: string;
 }
+
+export type RoleInscriptible = 'etudiant' | 'enseignant' | 'parent';
+
+export interface DemandeInscription {
+  nomComplet: string;
+  email: string;
+  motDePasse: string;
+  role: RoleInscriptible;
+}
+
+export type StatutCompte = 'enAttente' | 'actif' | 'bloque';
