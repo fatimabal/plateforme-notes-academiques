@@ -1,0 +1,142 @@
+<div class="page">
+  <header class="entete">
+    <div class="entete__marque">
+      <span class="entete__icone" aria-hidden="true">🎓</span>
+      <div>
+        <p class="entete__titre">ISI · Gestion des Notes</p>
+        <p class="entete__soustitre">Institut Supérieur d'Informatique</p>
+      </div>
+    </div>
+    <div class="entete__utilisateur">
+      <div class="entete__identite">
+        <p class="entete__nom">{{ profil()?.nom }}</p>
+        <p class="entete__role">Étudiant</p>
+      </div>
+      <button type="button" class="bouton-reset" (click)="reinitialiser()">↻ Reset</button>
+      <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
+    </div>
+  </header>
+
+  @if (profil(); as p) {
+    <main class="contenu">
+      <h1 class="page__titre">Bonjour, {{ p.nom }}</h1>
+
+      <section class="carte">
+        <p class="carte__label">Semestres consultables :</p>
+        <div class="semestres">
+          @for (s of p.semestres; track s.code) {
+            <button
+              type="button"
+              class="semestre"
+              [class.semestre--actif]="s.code === semestreSelectionneCode()"
+              (click)="selectionnerSemestre(s.code)"
+            >
+              {{ s.label }}
+            </button>
+          }
+        </div>
+        <p class="carte__astuce">Cliquez sur un semestre précédent pour consulter ses notes.</p>
+      </section>
+
+      @if (semestreAffiche(); as s) {
+        <div class="grille-info">
+          <div class="info-carte">
+            <p class="info-carte__label">Classe</p>
+            <p class="info-carte__valeur">{{ p.classe }}</p>
+          </div>
+          <div class="info-carte">
+            <p class="info-carte__label">Semestre affiché</p>
+            <p class="info-carte__valeur">{{ s.code }}</p>
+          </div>
+          <div class="info-carte info-carte--accent">
+            <p class="info-carte__label">Moyenne du semestre</p>
+            <p class="info-carte__valeur info-carte__valeur--accent">
+              {{ s.moyenne !== null ? (s.moyenne + '/20') : '—' }}
+            </p>
+          </div>
+        </div>
+
+        <section class="carte carte--bulletin">
+          <div>
+            <h2 class="carte__titre">Bulletin de notes — {{ s.code }}</h2>
+            <p class="carte__description">
+              @if (s.moyenne !== null) {
+                Votre bulletin est disponible. Cliquez pour le consulter et le télécharger.
+              } @else {
+                Le bulletin de ce semestre n'est pas encore disponible.
+              }
+            </p>
+          </div>
+          <button type="button" class="bouton-bulletin" [disabled]="s.moyenne === null">
+            📄 Voir mon bulletin
+          </button>
+        </section>
+
+        <h2 class="section-titre">Notes publiées — {{ s.code }}</h2>
+
+        @if (s.modules.length === 0) {
+          <p class="etat-vide">Aucune note publiée pour ce semestre.</p>
+        }
+
+        @for (m of s.modules; track m.matiere) {
+          <section class="carte">
+            <div class="carte__entete-ligne">
+              <h3 class="carte__titre">{{ m.matiere }}</h3>
+              <span class="badge-moyenne">Moyenne : {{ m.moyenne }}/20</span>
+            </div>
+
+            <table class="table-notes">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Note</th>
+                  <th>Coef.</th>
+                  <th>Date</th>
+                  <th class="table-notes__action">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of m.evaluations; track e.type) {
+                  <tr>
+                    <td>{{ e.type }}</td>
+                    <td>{{ e.note }}/20</td>
+                    <td>{{ e.coefficient }}</td>
+                    <td>{{ e.date }}</td>
+                    <td class="table-notes__action">
+                      @if (estReclamee(m.matiere, e.type)) {
+                        <span class="statut-reclamee">✓ Envoyée</span>
+                      } @else {
+                        <button type="button" class="bouton-reclamer" (click)="ouvrirReclamation(m.matiere, e.type)">
+                          ⚠ Réclamer
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                  @if (reclamationOuverte() === cleLigne(m.matiere, e.type)) {
+                    <tr class="ligne-reclamation">
+                      <td colspan="5">
+                        <label [for]="'motif-' + m.matiere + e.type">Motif de la réclamation</label>
+                        <textarea
+                          [id]="'motif-' + m.matiere + e.type"
+                          [(ngModel)]="motifReclamation"
+                          rows="2"
+                          placeholder="Expliquez pourquoi cette note vous semble erronée…"
+                        ></textarea>
+                        <div class="ligne-reclamation__actions">
+                          <button type="button" class="bouton-annuler" (click)="annulerReclamation()">Annuler</button>
+                          <button type="button" class="bouton-envoyer" (click)="envoyerReclamation(m.matiere, e.type)">
+                            Envoyer la réclamation
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </section>
+        }
+      }
+    </main>
+  }
+</div>
