@@ -1,38 +1,38 @@
 <div class="ecran">
   <section class="carte">
-    <div class="carte__entete">
+    <div class="entete-carte">
       <img src="isi.jpg" alt="Logo ISI" class="logo-image" />
-      <h1 class="carte__titre">Créer un compte</h1>
+      <h1 class="titre-carte">Créer un compte</h1>
     </div>
 
     @if (!compteCree()) {
-      <p class="carte__soustitre">Je suis</p>
+      <p class="soustitre-carte">Je suis</p>
 
       <div class="roles" role="radiogroup" aria-label="Je suis">
         <button
           type="button"
           class="role"
-          [class.role--actif]="roleSelectionne() === 'etudiant'"
+          [class.role-actif]="roleSelectionne() === 'etudiant'"
           [attr.aria-pressed]="roleSelectionne() === 'etudiant'"
           (click)="choisirRole('etudiant')"
         >
-          <span class="role__icone" aria-hidden="true">🎓</span>
+          <span class="icone-role" aria-hidden="true">🎓</span>
           Étudiant
         </button>
         <button
           type="button"
           class="role"
-          [class.role--actif]="roleSelectionne() === 'enseignant'"
+          [class.role-actif]="roleSelectionne() === 'enseignant'"
           [attr.aria-pressed]="roleSelectionne() === 'enseignant'"
           (click)="choisirRole('enseignant')"
         >
-          <span class="role__icone" aria-hidden="true">🖥️</span>
+          <span class="icone-role" aria-hidden="true">🖥️</span>
           Enseignant
         </button>
         <button
           type="button"
           class="role"
-          [class.role--actif]="roleSelectionne() === 'parent'"
+          [class.role-actif]="roleSelectionne() === 'parent'"
           [attr.aria-pressed]="roleSelectionne() === 'parent'"
           (click)="choisirRole('parent')"
         >
@@ -45,7 +45,7 @@
           <label for="nomComplet">Nom complet</label>
           <input id="nomComplet" type="text" formControlName="nomComplet" placeholder="Korka Bal" />
           @if (form.controls.nomComplet.invalid && form.controls.nomComplet.touched) {
-            <p class="champ__erreur">Le nom complet est requis.</p>
+            <p class="erreur-champ">Le nom complet est requis.</p>
           }
         </div>
 
@@ -53,7 +53,7 @@
           <label for="email">Adresse e-mail</label>
           <input id="email" type="email" formControlName="email" placeholder="korkabal@gmail.com" />
           @if (form.controls.email.invalid && form.controls.email.touched) {
-            <p class="champ__erreur">Entrez une adresse e-mail valide.</p>
+            <p class="erreur-champ">Entrez une adresse e-mail valide.</p>
           }
         </div>
 
@@ -68,7 +68,7 @@
           </div>
         </div>
         @if (form.errors?.['motsDePasseDifferents'] && form.controls.confirmation.touched) {
-          <p class="champ__erreur">Les mots de passe ne correspondent pas.</p>
+          <p class="erreur-champ">Les mots de passe ne correspondent pas.</p>
         }
 
         <button type="submit" class="bouton-principal" [disabled]="isSubmitting()">
@@ -79,11 +79,11 @@
       </form>
     } @else {
       <div class="confirmation">
-        <p class="confirmation__texte">
+        <p class="texte-confirmation">
           Votre compte a été créé et est <strong>en attente de validation</strong> par un administrateur.
           Vous recevrez un accès dès son activation.
         </p>
-        <a routerLink="/login" class="bouton-principal bouton-principal--lien">Retour à la connexion</a>
+        <a routerLink="/login" class="bouton-principal bouton-lien">Retour à la connexion</a>
       </div>
     }
   </section>
