@@ -1,10 +1,10 @@
 <div class="ecran">
   <section class="carte">
-    <div class="carte__entete">
-        <img src="isi.jpg" alt="Logo ISI" class="logo-image" />
-      <h1 class="carte__titre">Connexion</h1>
+    <div class="entete-carte">
+      <span class="logo" aria-hidden="true">ISI</span>
+      <h1 class="titre-carte">Connexion</h1>
     </div>
-    <p class="carte__soustitre">Accédez à votre espace selon votre rôle.</p>
+    <p class="soustitre-carte">Accédez à votre espace selon votre rôle.</p>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="formulaire">
       <div class="champ">
@@ -17,7 +17,7 @@
           placeholder="prenom.nom@etablissement.edu"
         />
         @if (form.controls.email.invalid && form.controls.email.touched) {
-          <p class="champ__erreur">
+          <p class="erreur-champ">
             @if (form.controls.email.errors?.['required']) {
               L'adresse e-mail est requise.
             } @else {
@@ -29,7 +29,7 @@
 
       <div class="champ">
         <label for="motDePasse">Mot de passe</label>
-        <div class="champ__mot-de-passe">
+        <div class="champ-mot-de-passe">
           <input
             id="motDePasse"
             [type]="motDePasseVisible() ? 'text' : 'password'"
@@ -39,7 +39,7 @@
           />
           <button
             type="button"
-            class="champ__bascule"
+            class="bouton-bascule"
             (click)="basculerVisibiliteMotDePasse()"
             [attr.aria-pressed]="motDePasseVisible()"
           >
@@ -47,12 +47,12 @@
           </button>
         </div>
         @if (form.controls.motDePasse.invalid && form.controls.motDePasse.touched) {
-          <p class="champ__erreur">Le mot de passe doit contenir au moins 4 caractères.</p>
+          <p class="erreur-champ">Le mot de passe doit contenir au moins 4 caractères.</p>
         }
       </div>
 
       @if (errorMessage()) {
-        <p class="formulaire__erreur-globale" role="alert">{{ errorMessage() }}</p>
+        <p class="erreur-globale" role="alert">{{ errorMessage() }}</p>
       }
 
       <button type="submit" class="bouton-principal" [disabled]="isSubmitting()">

@@ -19,34 +19,38 @@
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.06);
   padding: 2.75rem 2.75rem 2.5rem;
-
-  &__entete {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    margin-bottom: 0.6rem;
-  }
-
-  &__titre {
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 1.6rem;
-    margin: 0;
-    color: #101828;
-  }
-
-  &__soustitre {
-    font-family: var(--font-ui);
-    font-size: 0.95rem;
-    color: #667085;
-    margin: 0 0 2rem;
-  }
 }
 
-.logo-image {
-  height: 2.5rem;
-  width: auto;
-  object-fit: contain;
+.entete-carte {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.6rem;
+}
+
+.titre-carte {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 1.6rem;
+  margin: 0;
+  color: #101828;
+}
+
+.soustitre-carte {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  color: #667085;
+  margin: 0 0 2rem;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  color: #0b3484;
+  margin-right: 0.2rem;
 }
 
 .formulaire {
@@ -59,83 +63,83 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-
-  label {
-    font-family: var(--font-ui);
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #344054;
-  }
-
-  input {
-    font-family: var(--font-ui);
-    font-size: 0.95rem;
-    padding: 0.65rem 0.9rem;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    background: #fff;
-    color: #101828;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-
-    &::placeholder {
-      color: #98a2b3;
-    }
-
-    &:focus {
-      outline: none;
-      border-color: #1c5cff;
-      box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
-    }
-  }
-
-  &__mot-de-passe {
-    display: flex;
-    align-items: stretch;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    background: #fff;
-    overflow: hidden;
-
-    &:focus-within {
-      border-color: #1c5cff;
-      box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
-    }
-
-    input {
-      flex: 1;
-      border: none;
-      border-radius: 0;
-      box-shadow: none !important;
-
-      &:focus {
-        border: none;
-      }
-    }
-  }
-
-  &__bascule {
-    border: none;
-    border-left: 1px solid #d0d5dd;
-    background: transparent;
-    color: #667085;
-    font-family: var(--font-ui);
-    font-size: 0.8rem;
-    padding: 0 0.9rem;
-    cursor: pointer;
-
-    &:hover {
-      color: #344054;
-    }
-  }
-
-  &__erreur {
-    margin: 0;
-    font-size: 0.8rem;
-    color: #d92d20;
-  }
 }
 
-.formulaire__erreur-globale {
+.champ label {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #344054;
+}
+
+.champ input {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #101828;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.champ input::placeholder {
+  color: #98a2b3;
+}
+
+.champ input:focus {
+  outline: none;
+  border-color: #1c5cff;
+  box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
+}
+
+.champ-mot-de-passe {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.champ-mot-de-passe:focus-within {
+  border-color: #1c5cff;
+  box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
+}
+
+.champ-mot-de-passe input {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+.champ-mot-de-passe input:focus {
+  border: none;
+}
+
+.bouton-bascule {
+  border: none;
+  border-left: 1px solid #d0d5dd;
+  background: transparent;
+  color: #667085;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  padding: 0 0.9rem;
+  cursor: pointer;
+}
+
+.bouton-bascule:hover {
+  color: #344054;
+}
+
+.erreur-champ {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #d92d20;
+}
+
+.erreur-globale {
   margin: 0;
   padding: 0.7rem 0.9rem;
   font-size: 0.85rem;
@@ -157,15 +161,15 @@
   font-size: 0.95rem;
   cursor: pointer;
   transition: background-color 0.15s ease;
+}
 
-  &:hover:not(:disabled) {
-    background: #1547c9;
-  }
+.bouton-principal:hover:not(:disabled) {
+  background: #1547c9;
+}
 
-  &:disabled {
-    opacity: 0.65;
-    cursor: default;
-  }
+.bouton-principal:disabled {
+  opacity: 0.65;
+  cursor: default;
 }
 
 .lien-discret {
@@ -175,9 +179,9 @@
   color: #667085;
   text-decoration: none;
   border-bottom: 1px solid transparent;
+}
 
-  &:hover {
-    color: #344054;
-    border-bottom-color: #d0d5dd;
-  }
+.lien-discret:hover {
+  color: #344054;
+  border-bottom-color: #d0d5dd;
 }
