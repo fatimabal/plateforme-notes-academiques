@@ -1,0 +1,94 @@
+<div class="page">
+  <header class="entete-page">
+    <div class="marque-entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-entete" />
+      <div>
+        <p class="titre-entete">ISI · Gestion des Notes</p>
+        <p class="soustitre-entete">Institut Supérieur d'Informatique</p>
+      </div>
+    </div>
+    <div class="utilisateur-entete">
+      <div class="identite-utilisateur">
+        <p class="nom-utilisateur">{{ nomService }}</p>
+        <p class="role-utilisateur">Comptabilité</p>
+      </div>
+      <button type="button" class="bouton-reset">↻ Reset</button>
+      <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
+    </div>
+  </header>
+
+  <main class="contenu">
+    <h1 class="titre-page">Situation financière des étudiants</h1>
+
+    <div class="grille-stats">
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">💳</span> Encaissé</p>
+        <p class="valeur-stat">{{ data.totalEncaisse() }} DT</p>
+      </div>
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">💳</span> Attendu</p>
+        <p class="valeur-stat">{{ data.totalAttendu() }} DT</p>
+      </div>
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">✓</span> À jour</p>
+        <p class="valeur-stat">{{ data.nombreAJour() }}</p>
+      </div>
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">⚠</span> Impayés</p>
+        <p class="valeur-stat">{{ data.nombreImpayes() }}</p>
+      </div>
+    </div>
+
+    <section class="carte">
+      <h2 class="titre-carte">Dossiers étudiants</h2>
+      <p class="description-carte">
+        La situation financière conditionne certaines opérations administratives (retrait de bulletin, inscription).
+      </p>
+
+      <table class="table-dossiers">
+        <thead>
+          <tr>
+            <th>Étudiant</th>
+            <th>Classe</th>
+            <th>Frais</th>
+            <th>Payé</th>
+            <th>Reste</th>
+            <th>Situation</th>
+            <th>Encaisser</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of data.dossiers(); track d.id) {
+            <tr>
+              <td class="nom-etudiant">{{ d.etudiant }}</td>
+              <td>{{ d.classe }}</td>
+              <td>{{ d.frais }} DT</td>
+              <td>{{ d.paye }} DT</td>
+              <td [class.reste-nul]="reste(d) === 0" [class.reste-du]="reste(d) > 0">
+                {{ reste(d) }} DT
+              </td>
+              <td>
+                @if (estAJour(d)) {
+                  <span class="badge-a-jour">À jour</span>
+                } @else {
+                  <span class="badge-solde-du">Solde dû</span>
+                }
+              </td>
+              <td class="colonne-encaisser">
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Montant"
+                  class="input-montant"
+                  [(ngModel)]="montants[d.id]"
+                  [ngModelOptions]="{standalone: true}"
+                />
+                <button type="button" class="bouton-valider" (click)="encaisser(d)">Valider</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>
