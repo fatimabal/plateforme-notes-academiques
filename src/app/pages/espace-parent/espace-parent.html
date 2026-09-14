@@ -1,16 +1,16 @@
 <div class="page">
-  <header class="entete">
-    <div class="entete__marque">
-      <img src="isi.jpg" alt="Logo ISI" class="entete__logo" />
+  <header class="entete-page">
+    <div class="marque-entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-entete" />
       <div>
-        <p class="entete__titre">ISI - Gestion des Notes</p>
-        <p class="entete__soustitre">Institut supérieur d'informatique</p>
+        <p class="titre-entete">ISI - Gestion des Notes</p>
+        <p class="soustitre-entete">Institut supérieur d'informatique</p>
       </div>
     </div>
-    <div class="entete__utilisateur">
-      <div class="entete__identite">
-        <p class="entete__nom">{{ nomParent }}(Parent)</p>
-        <p class="entete__role">Parent</p>
+    <div class="utilisateur-entete">
+      <div class="identite-utilisateur">
+        <p class="nom-utilisateur">{{ nomParent }}(Parent)</p>
+        <p class="role-utilisateur">Parent</p>
       </div>
       <button type="button" class="bouton-reset" (click)="reinitialiser()">↻ Reset</button>
       <a routerLink="/login" class="bouton-deconnexion">Déconnexion</a>
@@ -18,16 +18,16 @@
   </header>
 
   <main class="contenu">
-    <h1 class="page__titre">Espace Parent {{ nomParent }} (Parent)</h1>
+    <h1 class="titre-page">Espace Parent {{ nomParent }} (Parent)</h1>
 
     <section class="carte">
-      <p class="carte__label">Mes enfants — cliquez pour consulter</p>
-      <div class="enfants">
+      <p class="label-carte">Mes enfants — cliquez pour consulter</p>
+      <div class="liste-enfants">
         @for (enfant of enfants(); track enfant.id) {
           <button
             type="button"
             class="enfant"
-            [class.enfant--actif]="enfant.id === enfantSelectionneId()"
+            [class.enfant-actif]="enfant.id === enfantSelectionneId()"
             (click)="selectionnerEnfant(enfant.id)"
           >
             {{ enfant.nom }} ({{ enfant.filiere }})
@@ -43,13 +43,13 @@
       </p>
 
       <section class="carte">
-        <h2 class="carte__titre">📄 Bulletins de {{ d.enfant.nom }}</h2>
-        <p class="carte__description">L'évolution ci-dessous est calculée à partir des bulletins disponibles.</p>
-        <div class="bulletins">
+        <h2 class="titre-carte">📄 Bulletins de {{ d.enfant.nom }}</h2>
+        <p class="description-carte">L'évolution ci-dessous est calculée à partir des bulletins disponibles.</p>
+        <div class="liste-bulletins">
           @for (s of d.semestres; track s.semestre) {
             <a class="bulletin" [href]="'#semestre-' + s.semestre">
               📄 Voir bulletin {{ s.semestre }}
-              <span class="bulletin__badge">{{ s.moyenne }}/20</span>
+              <span class="badge-bulletin">{{ s.moyenne }}/20</span>
             </a>
           }
         </div>
@@ -57,9 +57,9 @@
 
       @if (evolution(); as ev) {
         <section class="carte">
-          <div class="carte__entete-ligne">
-            <h2 class="carte__titre">Évolution (d'après les bulletins)</h2>
-            <span class="badge-evolution" [class.badge-evolution--baisse]="ev.delta < 0">
+          <div class="entete-ligne-carte">
+            <h2 class="titre-carte">Évolution (d'après les bulletins)</h2>
+            <span class="badge-evolution" [class.badge-evolution-baisse]="ev.delta < 0">
               {{ ev.delta >= 0 ? '↗' : '↘' }} {{ ev.delta >= 0 ? '+' : '' }}{{ ev.delta }} pts entre {{ ev.de }} et
               {{ ev.vers }}
             </span>
@@ -67,11 +67,11 @@
 
           @for (s of d.semestres; track s.semestre) {
             <div class="ligne-evolution">
-              <span class="ligne-evolution__label">{{ s.semestre }}</span>
-              <div class="ligne-evolution__piste">
-                <div class="ligne-evolution__barre" [style.width.%]="largeurBarre(s.moyenne)"></div>
+              <span class="label-evolution">{{ s.semestre }}</span>
+              <div class="piste-evolution">
+                <div class="barre-evolution" [style.width.%]="largeurBarre(s.moyenne)"></div>
               </div>
-              <span class="ligne-evolution__valeur">{{ s.moyenne }}/20</span>
+              <span class="valeur-evolution">{{ s.moyenne }}/20</span>
             </div>
           }
 
@@ -83,7 +83,7 @@
 
       @for (s of d.semestres; track s.semestre) {
         <section class="carte" [id]="'semestre-' + s.semestre">
-          <h2 class="carte__titre">Semestre {{ s.semestre }}</h2>
+          <h2 class="titre-carte">Semestre {{ s.semestre }}</h2>
           <table class="table-notes">
             <thead>
               <tr>
@@ -108,8 +108,8 @@
       }
 
       <section class="carte">
-        <h2 class="carte__titre">💬 Commentaires sur {{ d.enfant.nom }}</h2>
-        <div class="commentaire-form">
+        <h2 class="titre-carte">💬 Commentaires sur {{ d.enfant.nom }}</h2>
+        <div class="formulaire-commentaire">
           <textarea
             [(ngModel)]="nouveauCommentaire"
             placeholder="Partagez une observation, une inquiétude ou un encouragement…"
@@ -119,9 +119,9 @@
         </div>
 
         @if (commentaires().length === 0) {
-          <p class="commentaires__vide">Aucun commentaire pour le moment.</p>
+          <p class="vide-commentaires">Aucun commentaire pour le moment.</p>
         } @else {
-          <ul class="commentaires__liste">
+          <ul class="liste-commentaires">
             @for (c of commentaires(); track c.id) {
               <li>
                 <p>{{ c.texte }}</p>
