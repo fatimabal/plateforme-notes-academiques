@@ -9,62 +9,61 @@
   font-family: var(--font-ui);
 }
 
-/* ---------- En-tete ---------- */
-.entete {
+.entete-page {
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #fff;
   padding: 1rem 2rem;
   border-bottom: 1px solid #eaecf0;
+}
 
-  &__marque {
-    display: flex;
-    align-items: center;
-    gap: 0.9rem;
-  }
+.marque-entete {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
 
-  &__logo {
+.logo-entete {
   height: 2.5rem;
   width: auto;
   object-fit: contain;
 }
 
-  &__titre {
-    margin: 0;
-    font-weight: 700;
-    font-size: 1rem;
-    color: #101828;
-  }
+.titre-entete {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #101828;
+}
 
-  &__soustitre {
-    margin: 0;
-    font-size: 0.8rem;
-    color: #667085;
-  }
+.soustitre-entete {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #667085;
+}
 
-  &__utilisateur {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
+.utilisateur-entete {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 
-  &__identite {
-    text-align: right;
-  }
+.identite-utilisateur {
+  text-align: right;
+}
 
-  &__nom {
-    margin: 0;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #101828;
-  }
+.nom-utilisateur {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #101828;
+}
 
-  &__role {
-    margin: 0;
-    font-size: 0.78rem;
-    color: #667085;
-  }
+.role-utilisateur {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #667085;
 }
 
 .bouton-reset {
@@ -75,10 +74,10 @@
   padding: 0.5rem 0.9rem;
   font-size: 0.85rem;
   cursor: pointer;
+}
 
-  &:hover {
-    background: #f9fafb;
-  }
+.bouton-reset:hover {
+  background: #f9fafb;
 }
 
 .bouton-deconnexion {
@@ -91,20 +90,19 @@
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-
-  &:hover {
-    background: #1d2939;
-  }
 }
 
-/* ---------- Contenu ---------- */
+.bouton-deconnexion:hover {
+  background: #1d2939;
+}
+
 .contenu {
   max-width: 56rem;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
 }
 
-.page__titre {
+.titre-page {
   font-size: 1.5rem;
   font-weight: 700;
   color: #101828;
@@ -117,58 +115,57 @@
   border: 1px solid #eaecf0;
   padding: 1.5rem;
   margin-bottom: 1.25rem;
-
-  &__label {
-    font-size: 0.78rem;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: #667085;
-    margin: 0 0 0.9rem;
-  }
-
-  &__astuce {
-    font-size: 0.85rem;
-    color: #1c5cff;
-    margin: 0.9rem 0 0;
-  }
-
-  &__titre {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #101828;
-    margin: 0 0 0.4rem;
-  }
-
-  &__description {
-    font-size: 0.85rem;
-    color: #667085;
-    margin: 0;
-  }
-
-  &__entete-ligne {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-bottom: 1.1rem;
-
-    .carte__titre {
-      margin: 0;
-    }
-  }
-
-  &--bulletin {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
 }
 
-/* ---------- Semestres ---------- */
-.semestres {
+.label-carte {
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #667085;
+  margin: 0 0 0.9rem;
+}
+
+.astuce-carte {
+  font-size: 0.85rem;
+  color: #1c5cff;
+  margin: 0.9rem 0 0;
+}
+
+.titre-carte {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #101828;
+  margin: 0 0 0.4rem;
+}
+
+.description-carte {
+  font-size: 0.85rem;
+  color: #667085;
+  margin: 0;
+}
+
+.entete-ligne-carte {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+}
+
+.entete-ligne-carte .titre-carte {
+  margin: 0;
+}
+
+.carte-bulletin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.liste-semestres {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
@@ -183,26 +180,27 @@
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-
-  &:hover {
-    border-color: #98a2b3;
-  }
-
-  &--actif {
-    background: #1c5cff;
-    border-color: #1c5cff;
-    color: #fff;
-  }
 }
 
-/* ---------- Cartes info ---------- */
+.semestre:hover {
+  border-color: #98a2b3;
+}
+
+.semestre-actif {
+  background: #1c5cff;
+  border-color: #1c5cff;
+  color: #fff;
+}
+
 .grille-info {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 1.25rem;
+}
 
-  @media (max-width: 640px) {
+@media (max-width: 640px) {
+  .grille-info {
     grid-template-columns: 1fr;
   }
 }
@@ -212,33 +210,32 @@
   border: 1px solid #eaecf0;
   border-radius: 12px;
   padding: 1.1rem 1.25rem;
-
-  &__label {
-    font-size: 0.75rem;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: #667085;
-    margin: 0 0 0.4rem;
-  }
-
-  &__valeur {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #101828;
-    margin: 0;
-
-    &--accent {
-      color: #1c5cff;
-    }
-  }
-
-  &--accent {
-    background: #eef4ff;
-    border-color: #d6e4ff;
-  }
 }
 
-/* ---------- Bulletin ---------- */
+.label-info {
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #667085;
+  margin: 0 0 0.4rem;
+}
+
+.valeur-info {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #101828;
+  margin: 0;
+}
+
+.valeur-info-accent {
+  color: #1c5cff;
+}
+
+.info-carte-accent {
+  background: #eef4ff;
+  border-color: #d6e4ff;
+}
+
 .bouton-bulletin {
   display: flex;
   align-items: center;
@@ -252,18 +249,18 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background: #1547c9;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
 }
 
-.section-titre {
+.bouton-bulletin:hover:not(:disabled) {
+  background: #1547c9;
+}
+
+.bouton-bulletin:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.titre-section {
   font-size: 1.1rem;
   font-weight: 700;
   color: #101828;
@@ -285,31 +282,30 @@
   font-weight: 600;
 }
 
-/* ---------- Tableau de notes ---------- */
 .table-notes {
   width: 100%;
   border-collapse: collapse;
+}
 
-  th {
-    text-align: left;
-    font-size: 0.75rem;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: #667085;
-    padding: 0.6rem 0.4rem;
-    border-bottom: 1px solid #eaecf0;
-  }
+.table-notes th {
+  text-align: left;
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #667085;
+  padding: 0.6rem 0.4rem;
+  border-bottom: 1px solid #eaecf0;
+}
 
-  td {
-    padding: 0.75rem 0.4rem;
-    font-size: 0.9rem;
-    color: #101828;
-    border-bottom: 1px solid #f2f4f7;
-  }
+.table-notes td {
+  padding: 0.75rem 0.4rem;
+  font-size: 0.9rem;
+  color: #101828;
+  border-bottom: 1px solid #f2f4f7;
+}
 
-  &__action {
-    text-align: right;
-  }
+.colonne-action {
+  text-align: right;
 }
 
 .bouton-reclamer {
@@ -321,10 +317,10 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
+}
 
-  &:hover {
-    background: #fef0c7;
-  }
+.bouton-reclamer:hover {
+  background: #fef0c7;
 }
 
 .statut-reclamee {
@@ -335,41 +331,41 @@
 
 .ligne-reclamation {
   background: #f9fafb;
+}
 
-  td {
-    padding: 1rem;
-  }
+.ligne-reclamation td {
+  padding: 1rem;
+}
 
-  label {
-    display: block;
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: #344054;
-    margin-bottom: 0.4rem;
-  }
+.ligne-reclamation label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #344054;
+  margin-bottom: 0.4rem;
+}
 
-  textarea {
-    width: 100%;
-    font-family: var(--font-ui);
-    font-size: 0.88rem;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid #d0d5dd;
-    border-radius: 8px;
-    resize: vertical;
+.ligne-reclamation textarea {
+  width: 100%;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  resize: vertical;
+}
 
-    &:focus {
-      outline: none;
-      border-color: #1c5cff;
-      box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
-    }
-  }
+.ligne-reclamation textarea:focus {
+  outline: none;
+  border-color: #1c5cff;
+  box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
+}
 
-  &__actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.6rem;
-    margin-top: 0.7rem;
-  }
+.actions-reclamation {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
 }
 
 .bouton-annuler {
@@ -380,10 +376,10 @@
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
   cursor: pointer;
+}
 
-  &:hover {
-    background: #f9fafb;
-  }
+.bouton-annuler:hover {
+  background: #f9fafb;
 }
 
 .bouton-envoyer {
@@ -395,8 +391,8 @@
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
+}
 
-  &:hover {
-    background: #1547c9;
-  }
+.bouton-envoyer:hover {
+  background: #1547c9;
 }

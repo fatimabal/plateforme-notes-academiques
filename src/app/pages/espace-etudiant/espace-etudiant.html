@@ -1,16 +1,16 @@
 <div class="page">
-  <header class="entete">
-    <div class="entete__marque">
-      <img src="isi.jpg" alt="Logo ISI" class="entete__logo" />
+  <header class="entete-page">
+    <div class="marque-entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-entete" />
       <div>
-        <p class="entete__titre">ISI · Gestion des Notes</p>
-        <p class="entete__soustitre">Institut Supérieur d'Informatique</p>
+        <p class="titre-entete">ISI · Gestion des Notes</p>
+        <p class="soustitre-entete">Institut Supérieur d'Informatique</p>
       </div>
     </div>
-    <div class="entete__utilisateur">
-      <div class="entete__identite">
-        <p class="entete__nom">{{ profil()?.nom }}</p>
-        <p class="entete__role">Étudiant</p>
+    <div class="utilisateur-entete">
+      <div class="identite-utilisateur">
+        <p class="nom-utilisateur">{{ profil()?.nom }}</p>
+        <p class="role-utilisateur">Étudiant</p>
       </div>
       <button type="button" class="bouton-reset" (click)="reinitialiser()">↻ Reset</button>
       <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
@@ -19,47 +19,47 @@
 
   @if (profil(); as p) {
     <main class="contenu">
-      <h1 class="page__titre">Bonjour, {{ p.nom }}</h1>
+      <h1 class="titre-page">Bonjour, {{ p.nom }}</h1>
 
       <section class="carte">
-        <p class="carte__label">Semestres consultables :</p>
-        <div class="semestres">
+        <p class="label-carte">Semestres consultables :</p>
+        <div class="liste-semestres">
           @for (s of p.semestres; track s.code) {
             <button
               type="button"
               class="semestre"
-              [class.semestre--actif]="s.code === semestreSelectionneCode()"
+              [class.semestre-actif]="s.code === semestreSelectionneCode()"
               (click)="selectionnerSemestre(s.code)"
             >
               {{ s.label }}
             </button>
           }
         </div>
-        <p class="carte__astuce">Cliquez sur un semestre précédent pour consulter ses notes.</p>
+        <p class="astuce-carte">Cliquez sur un semestre précédent pour consulter ses notes.</p>
       </section>
 
       @if (semestreAffiche(); as s) {
         <div class="grille-info">
           <div class="info-carte">
-            <p class="info-carte__label">Classe</p>
-            <p class="info-carte__valeur">{{ p.classe }}</p>
+            <p class="label-info">Classe</p>
+            <p class="valeur-info">{{ p.classe }}</p>
           </div>
           <div class="info-carte">
-            <p class="info-carte__label">Semestre affiché</p>
-            <p class="info-carte__valeur">{{ s.code }}</p>
+            <p class="label-info">Semestre affiché</p>
+            <p class="valeur-info">{{ s.code }}</p>
           </div>
-          <div class="info-carte info-carte--accent">
-            <p class="info-carte__label">Moyenne du semestre</p>
-            <p class="info-carte__valeur info-carte__valeur--accent">
+          <div class="info-carte info-carte-accent">
+            <p class="label-info">Moyenne du semestre</p>
+            <p class="valeur-info valeur-info-accent">
               {{ s.moyenne !== null ? (s.moyenne + '/20') : '—' }}
             </p>
           </div>
         </div>
 
-        <section class="carte carte--bulletin">
+        <section class="carte carte-bulletin">
           <div>
-            <h2 class="carte__titre">Bulletin de notes — {{ s.code }}</h2>
-            <p class="carte__description">
+            <h2 class="titre-carte">Bulletin de notes — {{ s.code }}</h2>
+            <p class="description-carte">
               @if (s.moyenne !== null) {
                 Votre bulletin est disponible. Cliquez pour le consulter et le télécharger.
               } @else {
@@ -72,7 +72,7 @@
           </button>
         </section>
 
-        <h2 class="section-titre">Notes publiées — {{ s.code }}</h2>
+        <h2 class="titre-section">Notes publiées — {{ s.code }}</h2>
 
         @if (s.modules.length === 0) {
           <p class="etat-vide">Aucune note publiée pour ce semestre.</p>
@@ -80,8 +80,8 @@
 
         @for (m of s.modules; track m.matiere) {
           <section class="carte">
-            <div class="carte__entete-ligne">
-              <h3 class="carte__titre">{{ m.matiere }}</h3>
+            <div class="entete-ligne-carte">
+              <h3 class="titre-carte">{{ m.matiere }}</h3>
               <span class="badge-moyenne">Moyenne : {{ m.moyenne }}/20</span>
             </div>
 
@@ -92,7 +92,7 @@
                   <th>Note</th>
                   <th>Coef.</th>
                   <th>Date</th>
-                  <th class="table-notes__action">Action</th>
+                  <th class="colonne-action">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -102,7 +102,7 @@
                     <td>{{ e.note }}/20</td>
                     <td>{{ e.coefficient }}</td>
                     <td>{{ e.date }}</td>
-                    <td class="table-notes__action">
+                    <td class="colonne-action">
                       @if (estReclamee(m.matiere, e.type)) {
                         <span class="statut-reclamee">✓ Envoyée</span>
                       } @else {
@@ -122,7 +122,7 @@
                           rows="2"
                           placeholder="Expliquez pourquoi cette note vous semble erronée…"
                         ></textarea>
-                        <div class="ligne-reclamation__actions">
+                        <div class="actions-reclamation">
                           <button type="button" class="bouton-annuler" (click)="annulerReclamation()">Annuler</button>
                           <button type="button" class="bouton-envoyer" (click)="envoyerReclamation(m.matiere, e.type)">
                             Envoyer la réclamation
