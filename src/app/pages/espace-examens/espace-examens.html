@@ -1,0 +1,83 @@
+<div class="page">
+  <header class="entete-page">
+    <div class="marque-entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-entete" />
+      <div>
+        <p class="titre-entete">ISI · Gestion des Notes</p>
+        <p class="soustitre-entete">Institut Supérieur d'Informatique</p>
+      </div>
+    </div>
+    <div class="utilisateur-entete">
+      <div class="identite-utilisateur">
+        <p class="nom-utilisateur">{{ nomService }}</p>
+        <p class="role-utilisateur">Service des examens</p>
+      </div>
+      <button type="button" class="bouton-reset">↻ Reset</button>
+      <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
+    </div>
+  </header>
+
+  <main class="contenu">
+    <h1 class="titre-page">Contrôle, délibération et résultats officiels</h1>
+
+    <div class="ligne-semestres">
+      <span class="label-semestres">Semestre :</span>
+      @for (s of semestres; track s) {
+        <button
+          type="button"
+          class="semestre"
+          [class.semestre-actif]="s === semestreSelectionne()"
+          (click)="selectionnerSemestre(s)"
+        >
+          {{ s }}
+        </button>
+      }
+    </div>
+
+    <section class="carte">
+      <div class="entete-carte">
+        <h2 class="titre-carte">📋 Procès-verbal de délibération — {{ semestreSelectionne() }}</h2>
+        @if (deliberation().lignes.length > 0 && !toutEstDelibere()) {
+          <button type="button" class="bouton-principal" (click)="lancerDeliberation()">
+            Lancer la délibération
+          </button>
+        }
+      </div>
+
+      @if (deliberation().lignes.length === 0) {
+        <p class="etat-vide">Aucun étudiant à délibérer pour ce semestre.</p>
+      } @else {
+        <table class="table-deliberation">
+          <thead>
+            <tr>
+              <th>Étudiant</th>
+              <th>Classe</th>
+              <th>Notes publiées</th>
+              <th>Moyenne</th>
+              <th>Décision</th>
+              <th>Observation</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of deliberation().lignes; track l.etudiant) {
+              <tr>
+                <td class="nom-etudiant">{{ l.etudiant }}</td>
+                <td>{{ l.classe }}</td>
+                <td>{{ l.notesPubliees }}/{{ l.notesAttendues }}</td>
+                <td class="moyenne">{{ l.moyenne }}/20</td>
+                <td>
+                  @if (l.decision === 'delibere') {
+                    <span class="badge-delibere">📄 Délibéré</span>
+                  } @else {
+                    <span class="badge-en-attente">⏳ En attente</span>
+                  }
+                </td>
+                <td>{{ l.observation }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  </main>
+</div>

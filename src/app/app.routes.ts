@@ -5,6 +5,7 @@ import { EspaceParent } from './pages/espace-parent/espace-parent';
 import { EspaceEtudiant } from './pages/espace-etudiant/espace-etudiant';
 import { EspaceEnseignant } from './pages/espace-enseignant/espace-enseignant';
 import { EspaceComptabilite } from './pages/espace-comptabilite/espace-comptabilite';
+import { EspaceExamens } from './pages/espace-examens/espace-examens';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -13,6 +14,8 @@ export const routes: Routes = [
   { path: 'espace-enseignant', component: EspaceEnseignant },
   { path: 'espace-etudiant', component: EspaceEtudiant },
     { path: 'espace-comptabilite', component: EspaceComptabilite },
+    { path: 'espace-examens', component: EspaceExamens },
+
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },
 ];
