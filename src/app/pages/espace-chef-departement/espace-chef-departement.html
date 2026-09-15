@@ -1,0 +1,152 @@
+<div class="page">
+  <header class="entete-page">
+    <div class="marque-entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-entete" />
+      <div>
+        <p class="titre-entete">ISI · Gestion des Notes</p>
+        <p class="soustitre-entete">Institut Supérieur d'Informatique</p>
+      </div>
+    </div>
+    <div class="utilisateur-entete">
+      <div class="identite-utilisateur">
+        <p class="nom-utilisateur">{{ nomChef }}</p>
+        <p class="role-utilisateur">Chef de département</p>
+      </div>
+      <button type="button" class="bouton-reset">↻ Reset</button>
+      <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
+    </div>
+  </header>
+
+  <main class="contenu">
+    <h1 class="titre-page">Tableau de bord pédagogique</h1>
+
+    <div class="ligne-semestres">
+      <span class="label-semestres">Semestre :</span>
+      @for (s of semestres; track s) {
+        <button
+          type="button"
+          class="semestre"
+          [class.semestre-actif]="s === semestreSelectionne()"
+          (click)="selectionnerSemestre(s)"
+        >
+          {{ s }}
+        </button>
+      }
+    </div>
+
+    @if (tableauBord(); as t) {
+      <div class="grille-stats">
+        <div class="carte-stat">
+          <p class="label-stat"><span class="icone-stat">%</span> Taux de réussite</p>
+          <p class="valeur-stat">{{ t.tauxReussite }} %</p>
+        </div>
+        <div class="carte-stat">
+          <p class="label-stat"><span class="icone-stat">👥</span> Étudiants évalués</p>
+          <p class="valeur-stat">{{ t.etudiantsEvalues }}</p>
+        </div>
+        <div class="carte-stat">
+          <p class="label-stat"><span class="icone-stat">↗</span> Moyenne générale</p>
+          <p class="valeur-stat">{{ t.moyenneGenerale }}</p>
+        </div>
+        <div class="carte-stat">
+          <p class="label-stat"><span class="icone-stat">💬</span> Réclamations</p>
+          <p class="valeur-stat">{{ t.reclamationsTraitees }} / {{ t.reclamationsTotal }}</p>
+        </div>
+      </div>
+
+      <div class="grille-deux-colonnes">
+        <section class="carte">
+          <h2 class="titre-carte">Moyennes par classe</h2>
+          <table class="table-donnees">
+            <thead>
+              <tr>
+                <th>Classe</th>
+                <th>Étudiants</th>
+                <th>Moyenne</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of t.moyennesParClasse; track c.classe) {
+                <tr>
+                  <td class="nom-fort">{{ c.classe }}</td>
+                  <td>{{ c.etudiants }}</td>
+                  <td class="moyenne">{{ c.moyenne }}/20</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+
+        <section class="carte">
+          <h2 class="titre-carte">Distribution des notes</h2>
+          <div class="liste-distribution">
+            @for (d of t.distribution; track d.tranche) {
+              <div class="ligne-distribution">
+                <span class="label-distribution">{{ d.tranche }}</span>
+                <div class="piste-distribution">
+                  <div class="barre-distribution" [style.width.%]="largeurBarre(d.count)"></div>
+                </div>
+                <span class="valeur-distribution">{{ d.count }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+
+      <div class="grille-deux-colonnes">
+        <section class="carte">
+          <h2 class="titre-carte">Moyennes par module</h2>
+          <table class="table-donnees">
+            <thead>
+              <tr>
+                <th>Module</th>
+                <th>Notes</th>
+                <th>Moyenne</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of t.moyennesParModule; track m.module) {
+                <tr>
+                  <td>{{ m.module }}</td>
+                  <td>{{ m.notes }}</td>
+                  <td class="moyenne">{{ m.moyenne }}/20</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+
+        <section class="carte">
+          <h2 class="titre-carte">Points d'attention</h2>
+
+          <p class="titre-groupe titre-groupe-hausse">↗ Meilleures performances</p>
+          <ul class="liste-points">
+            @for (m of meilleuresPerformances(); track m.module) {
+              <li>{{ m.module }} — <strong>{{ m.moyenne }}/20</strong></li>
+            }
+          </ul>
+
+          <p class="titre-groupe titre-groupe-baisse">↘ Modules les plus faibles</p>
+          <ul class="liste-points">
+            @for (m of modulesLesPlusFaibles(); track m.module) {
+              <li>{{ m.module }} — <strong>{{ m.moyenne }}/20</strong></li>
+            }
+          </ul>
+
+          <p class="titre-groupe titre-groupe-alerte">Étudiants nécessitant une attention</p>
+          @if (classesEnDifficulte().length === 0) {
+            <p class="etat-vide">Aucun étudiant en difficulté identifié.</p>
+          } @else {
+            <ul class="liste-points">
+              @for (c of classesEnDifficulte(); track c.classe) {
+                <li>{{ c.etudiants }} étudiant(s) en difficulté en {{ c.classe }} (moyenne {{ c.moyenne }}/20).</li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+    } @else {
+      <p class="etat-vide">Aucune donnée disponible pour ce semestre.</p>
+    }
+  </main>
+</div>
