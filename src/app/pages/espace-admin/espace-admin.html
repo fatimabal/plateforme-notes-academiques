@@ -1,0 +1,198 @@
+<div class="page">
+  <header class="entete-page">
+    <div class="marque-entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-entete" />
+      <div>
+        <p class="titre-entete">ISI · Gestion des Notes</p>
+        <p class="soustitre-entete">Institut Supérieur d'Informatique</p>
+      </div>
+    </div>
+    <div class="utilisateur-entete">
+      <div class="identite-utilisateur">
+        <p class="nom-utilisateur">{{ data.nomActeur }}</p>
+        <p class="role-utilisateur">Administrateur</p>
+      </div>
+      <button type="button" class="bouton-reset">↻ Reset</button>
+      <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
+    </div>
+  </header>
+
+  <main class="contenu">
+    <h1 class="titre-page">Administration de la plateforme</h1>
+
+    <div class="grille-stats">
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">👥</span> Comptes</p>
+        <p class="valeur-stat">{{ data.comptes().length }}</p>
+      </div>
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">📄</span> Notes</p>
+        <p class="valeur-stat">{{ totalNotes }}</p>
+      </div>
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">🛡️</span> Réclamations</p>
+        <p class="valeur-stat">{{ totalReclamations }}</p>
+      </div>
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">🕘</span> Actions auditées</p>
+        <p class="valeur-stat">{{ data.journal().length }}</p>
+      </div>
+    </div>
+
+    <div class="ligne-roles">
+      @for (r of repartitionRoles(); track r.role) {
+        <span class="pastille-role">{{ r.role }} · {{ r.count }}</span>
+      }
+    </div>
+
+    <section class="carte">
+      <div class="entete-gestion-comptes">
+        <div>
+          <h2 class="titre-carte">Gestion des comptes</h2>
+          <p class="description-carte">Création, modification, réinitialisation et suppression des utilisateurs.</p>
+        </div>
+        <div class="controles-gestion-comptes">
+          <input
+            type="text"
+            class="champ-recherche"
+            placeholder="Rechercher…"
+            [(ngModel)]="recherche"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="recherche.set($event)"
+          />
+          <select
+            class="champ-filtre-role"
+            [ngModel]="roleFiltre()"
+            (ngModelChange)="roleFiltre.set($event)"
+          >
+            <option>Tous les rôles</option>
+            @for (r of roles; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+          <button type="button" class="bouton-principal" (click)="basculerFormulaire()">
+            + Nouveau compte
+          </button>
+        </div>
+      </div>
+
+      @if (formulaireOuvert()) {
+        <div class="formulaire-nouveau-compte">
+          <div class="champ">
+            <label for="nouveauNom">Nom</label>
+            <input id="nouveauNom" type="text" [(ngModel)]="nouveauNom" [ngModelOptions]="{standalone: true}" />
+          </div>
+          <div class="champ">
+            <label for="nouvelEmail">E-mail</label>
+            <input id="nouvelEmail" type="email" [(ngModel)]="nouvelEmail" [ngModelOptions]="{standalone: true}" />
+          </div>
+          <div class="champ">
+            <label for="nouveauRole">Rôle</label>
+            <select id="nouveauRole" [(ngModel)]="nouveauRole" [ngModelOptions]="{standalone: true}">
+              @for (r of roles; track r) {
+                <option [value]="r">{{ r }}</option>
+              }
+            </select>
+          </div>
+          <div class="champ">
+            <label for="nouveauxDetails">Détails</label>
+            <input id="nouveauxDetails" type="text" [(ngModel)]="nouveauxDetails" [ngModelOptions]="{standalone: true}" placeholder="Ex. L1 GL · L1-S1" />
+          </div>
+          <div class="actions-formulaire">
+            <button type="button" class="bouton-annuler" (click)="basculerFormulaire()">Annuler</button>
+            <button type="button" class="bouton-principal" (click)="creerCompte()">Créer le compte</button>
+          </div>
+        </div>
+      }
+
+      <table class="table-comptes">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>E-mail</th>
+            <th>Rôle</th>
+            <th>Détails</th>
+            <th class="colonne-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of comptesFiltres(); track c.id) {
+            <tr>
+              @if (compteEnEdition() === c.id) {
+                <td><input type="text" [(ngModel)]="nomEdite" [ngModelOptions]="{standalone: true}" class="input-edition" /></td>
+                <td>{{ c.email }}</td>
+                <td>
+                  <select [(ngModel)]="roleEdite" [ngModelOptions]="{standalone: true}" class="input-edition">
+                    @for (r of roles; track r) {
+                      <option [value]="r">{{ r }}</option>
+                    }
+                  </select>
+                </td>
+                <td><input type="text" [(ngModel)]="detailsEdites" [ngModelOptions]="{standalone: true}" class="input-edition" /></td>
+                <td class="colonne-actions">
+                  <button type="button" class="bouton-icone" (click)="enregistrerEdition(c.id)" title="Enregistrer">✓</button>
+                  <button type="button" class="bouton-icone" (click)="annulerEdition()" title="Annuler">✕</button>
+                </td>
+              } @else {
+                <td class="nom-fort">{{ c.nom }}</td>
+                <td>{{ c.email }}</td>
+                <td><span class="badge-role">{{ c.role }}</span></td>
+                <td class="details-compte">{{ c.details }}</td>
+                <td class="colonne-actions">
+                  <button type="button" class="bouton-icone" (click)="ouvrirEdition(c)" title="Modifier">✏️</button>
+                  @if (compteReinitialise() === c.id) {
+                    <span class="statut-reinitialise">✓ Réinitialisé</span>
+                  } @else {
+                    <button type="button" class="bouton-icone" (click)="reinitialiserMotDePasse(c)" title="Réinitialiser le mot de passe">🔑</button>
+                  }
+                  <button
+                    type="button"
+                    class="bouton-icone bouton-icone-danger"
+                    [disabled]="!c.peutSupprimer"
+                    (click)="supprimerCompte(c)"
+                    title="Supprimer"
+                  >
+                    🗑️
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="carte">
+      <div class="entete-gestion-comptes">
+        <div>
+          <h2 class="titre-carte">Journal d'audit global</h2>
+          <p class="description-carte">Toutes les interventions horodatées, tous rôles confondus.</p>
+        </div>
+        <button type="button" class="bouton-annuler" (click)="purgerJournal()">Purger</button>
+      </div>
+
+      <table class="table-audit">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Acteur</th>
+            <th>Action</th>
+            <th>Cible</th>
+            <th>Détails</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of data.journal(); track e.id) {
+            <tr>
+              <td>{{ e.date }}</td>
+              <td>{{ e.acteur }} <span class="role-acteur">({{ e.role }})</span></td>
+              <td>{{ e.action }}</td>
+              <td>{{ e.cible }}</td>
+              <td>{{ e.details }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </main>
+</div>
