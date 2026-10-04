@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router,RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../core/auth';
 
 @Component({
@@ -40,14 +40,37 @@ export class Login {
     const { email, motDePasse } = this.form.getRawValue();
 
     this.auth.login({ email: email!, motDePasse: motDePasse! }).subscribe({
-      next: (session) => {
+      next: (session: any) => {
         this.isSubmitting.set(false);
-        console.log('Connexion reussie', session);
+        // Sauvegarder le token
+        localStorage.setItem('token', session.token);
+        localStorage.setItem('role', session.user.role);
+        // Rediriger selon le rôle
+        this.redirectByRole(session.user.role);
       },
       error: (err: Error) => {
         this.isSubmitting.set(false);
         this.errorMessage.set(err.message);
       },
     });
+    
   }
+  private redirectByRole(role: string): void {
+    switch(role) {
+        case 'etudiant':
+            this.router.navigate(['/espace-etudiant']);
+            break;
+        case 'enseignant':
+            this.router.navigate(['/espace-enseignant']);
+            break;
+        case 'scolarite':
+            this.router.navigate(['/espace-agent-service-examen']);
+            break;
+        case 'parent':
+            this.router.navigate(['/espace-parent']);
+            break;
+        default:
+            this.router.navigate(['/login']);
+    }
+}
 }

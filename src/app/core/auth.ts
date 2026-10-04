@@ -1,27 +1,22 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { Credentials, SessionUtilisateur } from './models/utilisateur.model';
-
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class Auth {
-  login(credentials: Credentials): Observable<SessionUtilisateur> {
-    const emailValide = /.+@.+\..+/.test(credentials.email);
+  private apiUrl = environment.apiUrl;
 
-    if (!emailValide || credentials.motDePasse.length < 4) {
-      return throwError(() => new Error('Identifiants incorrects. Vérifiez votre adresse e-mail et votre mot de passe.')).pipe(
-        delay(600)
-      );
-    }
+  constructor(private http: HttpClient) {}
 
-    const session: SessionUtilisateur = {
-      token: 'jeton-simule',
-      role: 'etudiant',
-      nom: 'Diop',
-      prenom: 'Awa',
-    };
+  login(credentials: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/login`, {
+      email: credentials.email,
+      password: credentials.motDePasse
+    });
+  }
 
-    return of(session).pipe(delay(700));
+  logout(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/logout`, {});
   }
 }

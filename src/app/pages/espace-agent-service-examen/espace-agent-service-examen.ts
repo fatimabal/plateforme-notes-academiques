@@ -4,12 +4,12 @@ import { RouterLink } from '@angular/router';
 import { ExamensData } from '../../core/examens-data';
 
 @Component({
-  selector: 'app-espace-examens',
+  selector: 'app-espace-agent-service-examen',
   imports: [CommonModule, RouterLink],
-  templateUrl: './espace-examens.html',
-  styleUrl: './espace-examens.scss',
+  templateUrl: './espace-agent-service-examen.html',
+  styleUrl: './espace-agent-service-examen.scss',
 })
-export class EspaceExamens {
+export class EspaceAgentServiceExamen {
   protected readonly data = inject(ExamensData);
 
   protected readonly nomService = 'Service des Examens';
