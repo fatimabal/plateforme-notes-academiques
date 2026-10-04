@@ -1,58 +1,47 @@
-import { Injectable, signal } from '@angular/core';
-import { DeliberationSemestre } from './models/examens.model';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
-/**
- * Donnees mockees pour l'espace Service des examens, en attendant le backend.
- *
- * TODO (integration backend) :
- *  - GET /api/examens/deliberations?semestre=... -> DeliberationSemestre
- *  - POST /api/examens/deliberations/{semestre}/lancer
- *      (implemente ServiceDesExamens#gererDeliberation() du diagramme de
- *       classes : passe toutes les lignes du semestre en 'delibere')
- */
 @Injectable({ providedIn: 'root' })
 export class ExamensData {
-  readonly semestres = ['L1-S1', 'L1-S2', 'L2-S1', 'L2-S2', 'L3-S1', 'L3-S2'];
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
-  private readonly deliberationsSignal = signal<Record<string, DeliberationSemestre>>({
-    'L1-S1': { semestre: 'L1-S1', lignes: [] },
-    'L1-S2': { semestre: 'L1-S2', lignes: [] },
-    'L2-S1': { semestre: 'L2-S1', lignes: [] },
-    'L2-S2': { semestre: 'L2-S2', lignes: [] },
-    'L3-S1': {
-      semestre: 'L3-S1',
-      lignes: [
-        {
-          etudiant: 'Étudiant Démo',
-          classe: 'L3 GL',
-          notesPubliees: 2,
-          notesAttendues: 2,
-          moyenne: 15.33,
-          decision: 'delibere',
-          observation: 'admins',
-        },
-      ],
-    },
-    'L3-S2': { semestre: 'L3-S2', lignes: [] },
-  });
-
-  readonly deliberations = this.deliberationsSignal.asReadonly();
-
-  getDeliberation(semestre: string): DeliberationSemestre {
-    return this.deliberationsSignal()[semestre] ?? { semestre, lignes: [] };
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
   }
 
-  lancerDeliberation(semestre: string): void {
-    this.deliberationsSignal.update((dict) => {
-      const actuel = dict[semestre];
-      if (!actuel) return dict;
-      return {
-        ...dict,
-        [semestre]: {
-          ...actuel,
-          lignes: actuel.lignes.map((l) => ({ ...l, decision: 'delibere' })),
-        },
-      };
+
+  // Récupérer tous les semestres
+  getSemestres(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/semestres`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // Récupérer les notes validées
+  getNotes(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/notes`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // Valider une note (délibération)
+  validerNote(noteId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/notes/${noteId}/valider`, {}, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // Générer un bulletin
+  genererBulletin(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/bulletins`, data, {
+      headers: this.getHeaders()
     });
   }
 }

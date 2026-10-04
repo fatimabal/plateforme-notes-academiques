@@ -1,11 +1,21 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { DemandeInscription } from './models/utilisateur.model';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class InscriptionApi {
-  creerCompte(demande: DemandeInscription): Observable<{ statut: 'enAttente' }> {
-    return of({ statut: 'enAttente' as const }).pipe(delay(700));
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
+
+  creerCompte(demande: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register`, {
+      nom: demande.nom,
+      prenom: demande.prenom,
+      email: demande.email,
+      password: demande.motDePasse,
+      role: demande.role,
+      telephone: demande.telephone
+    });
   }
 }
