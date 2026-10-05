@@ -1,44 +1,36 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { DossierFinancier } from './models/comptabilite.model';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
-/**
- * Donnees mockees pour l'espace comptabilite, en attendant le backend.
- *
- * TODO (integration backend) :
- *  - GET /api/comptabilite/dossiers -> DossierFinancier[]
- *  - PATCH /api/comptabilite/dossiers/{id} { montantEncaisse }
- *      (implemente Comptabilite#reglerSituation() et
- *       SituationFinanciere#verifierSituation() du diagramme de classes)
- */
 @Injectable({ providedIn: 'root' })
 export class ComptabiliteData {
-  private readonly dossiersSignal = signal<DossierFinancier[]>([
-    { id: crypto.randomUUID(), etudiant: 'Khady DIOP', classe: 'L3 GL', frais: 2500, paye: 212500 },
-    { id: crypto.randomUUID(), etudiant: 'Korka BAL', classe: 'L1 GL', frais: 2500, paye: 1000 },
-    { id: crypto.randomUUID(), etudiant: 'Yande GUISSE', classe: 'L2 GL', frais: 2500, paye: 0 },
-  ]);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = environment.apiUrl;
 
-  readonly dossiers = this.dossiersSignal.asReadonly();
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
 
-  readonly totalEncaisse = computed(() =>
-    this.dossiersSignal().reduce((somme, d) => somme + d.paye, 0)
-  );
+  // Récupérer toutes les situations financières
+  getSituationsFinancieres(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/situations-financieres`, {
+      headers: this.getHeaders()
+    });
+  }
 
-  readonly totalAttendu = computed(() =>
-    this.dossiersSignal().reduce((somme, d) => somme + d.frais, 0)
-  );
-
-  readonly nombreAJour = computed(
-    () => this.dossiersSignal().filter((d) => d.paye >= d.frais).length
-  );
-
-  readonly nombreImpayes = computed(
-    () => this.dossiersSignal().filter((d) => d.paye < d.frais).length
-  );
-
-  encaisser(id: string, montant: number): void {
-    this.dossiersSignal.update((liste) =>
-      liste.map((d) => (d.id === id ? { ...d, paye: d.paye + montant } : d))
-    );
+  // Mettre à jour la situation financière d'un étudiant
+  mettreAJour(etudiantId: number, estAJour: boolean): Observable<any> {
+    return this.http.post(`${this.apiUrl}/situations-financieres`, {
+      etudiant_id: etudiantId,
+      estAJour: estAJour,
+      dateVerification: new Date().toISOString().split('T')[0]
+    }, {
+      headers: this.getHeaders()
+    });
   }
 }
