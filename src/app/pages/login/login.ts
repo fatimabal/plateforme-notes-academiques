@@ -69,6 +69,15 @@ export class Login {
         case 'parent':
             this.router.navigate(['/espace-parent']);
             break;
+        case 'comptable':
+            this.router.navigate(['/espace-comptabilite']);
+            break;
+        case 'chef_departement':
+            this.router.navigate(['/espace-chef-departement']);
+            break;
+        case 'admin':
+            this.router.navigate(['/espace-admin']);
+            break;
         default:
             this.router.navigate(['/login']);
     }

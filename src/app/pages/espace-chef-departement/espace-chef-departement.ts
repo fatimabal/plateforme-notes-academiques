@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ChefDepartementData } from '../../core/chef-departement-data';
-
 const SEUIL_DIFFICULTE = 13;
 
 @Component({
@@ -14,9 +13,9 @@ const SEUIL_DIFFICULTE = 13;
 export class EspaceChefDepartement {
   private readonly data = inject(ChefDepartementData);
 
-  protected readonly nomChef = 'Dr. Hedi Gharbi';
+  protected readonly nomChef = localStorage.getItem('nom') ?? 'Chef Département';
   protected readonly semestres = this.data.semestres;
-  protected readonly semestreSelectionne = signal(this.semestres[0]); // "Tous" par defaut
+  protected readonly semestreSelectionne = signal(this.semestres[0]);
 
   protected readonly tableauBord = computed(() =>
     this.data.getTableauBord(this.semestreSelectionne())
@@ -24,26 +23,26 @@ export class EspaceChefDepartement {
 
   protected readonly maxDistribution = computed(() => {
     const t = this.tableauBord();
-    if (!t) return 1;
-    return Math.max(1, ...t.distribution.map((d) => d.count));
+    if (!t || !t.distribution.length) return 1;
+    return Math.max(1, ...t.distribution.map((d: any) => d.count));
   });
 
   protected readonly meilleuresPerformances = computed(() => {
     const t = this.tableauBord();
     if (!t) return [];
-    return [...t.moyennesParModule].sort((a, b) => b.moyenne - a.moyenne);
+    return [...t.moyennesParModule].sort((a: any, b: any) => b.moyenne - a.moyenne);
   });
 
   protected readonly modulesLesPlusFaibles = computed(() => {
     const t = this.tableauBord();
     if (!t) return [];
-    return [...t.moyennesParModule].sort((a, b) => a.moyenne - b.moyenne);
+    return [...t.moyennesParModule].sort((a: any, b: any) => a.moyenne - b.moyenne);
   });
 
   protected readonly classesEnDifficulte = computed(() => {
     const t = this.tableauBord();
     if (!t) return [];
-    return t.moyennesParClasse.filter((c) => c.moyenne < SEUIL_DIFFICULTE);
+    return t.moyennesParClasse.filter((c: any) => c.moyenne < SEUIL_DIFFICULTE);
   });
 
   protected selectionnerSemestre(semestre: string): void {

@@ -1,36 +1,28 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../environments/environment';
+import { Injectable, computed, signal } from '@angular/core';
+import { Observable, of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ComptabiliteData {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = environment.apiUrl;
+  readonly dossiers = signal([
+    { id: 1, etudiant: 'Alice Yaya', classe: 'L3 GL', frais: 350000, paye: 270000 },
+    { id: 2, etudiant: 'Brahim Diallo', classe: 'L2 SI', frais: 350000, paye: 350000 },
+    { id: 3, etudiant: 'Sonia Koffi', classe: 'L3 SI', frais: 350000, paye: 310000 }
+  ]);
 
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
-  }
+  readonly totalEncaisse = computed(() => this.dossiers().reduce((sum, dossier) => sum + dossier.paye, 0));
+  readonly totalAttendu = computed(() => this.dossiers().reduce((sum, dossier) => sum + dossier.frais, 0));
+  readonly nombreAJour = computed(() => this.dossiers().filter((dossier) => dossier.paye >= dossier.frais).length);
+  readonly nombreImpayes = computed(() => this.dossiers().filter((dossier) => dossier.paye < dossier.frais).length);
 
-  // Récupérer toutes les situations financières
   getSituationsFinancieres(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/situations-financieres`, {
-      headers: this.getHeaders()
-    });
+    return of(this.dossiers());
   }
 
-  // Mettre à jour la situation financière d'un étudiant
-  mettreAJour(etudiantId: number, estAJour: boolean): Observable<any> {
-    return this.http.post(`${this.apiUrl}/situations-financieres`, {
-      etudiant_id: etudiantId,
-      estAJour: estAJour,
-      dateVerification: new Date().toISOString().split('T')[0]
-    }, {
-      headers: this.getHeaders()
-    });
+  encaisser(etudiantId: number, montant: number): Observable<any> {
+    this.dossiers.update((liste) => liste.map((d) => {
+      if (d.id !== etudiantId) return d;
+      return { ...d, paye: Math.min(d.frais, d.paye + montant) };
+    }));
+    return of({ success: true, etudiantId, montant });
   }
 }

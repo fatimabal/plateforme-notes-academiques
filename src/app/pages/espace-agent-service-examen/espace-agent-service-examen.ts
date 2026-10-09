@@ -22,8 +22,8 @@ export class EspaceAgentServiceExamen {
   );
 
   protected readonly toutEstDelibere = computed(() => {
-    const lignes = this.deliberation().lignes;
-    return lignes.length > 0 && lignes.every((l) => l.decision === 'delibere');
+    const lignes = this.deliberation().lignes as Array<{ decision: string }>;
+    return lignes.length > 0 && lignes.every((l: { decision: string }) => l.decision === 'delibere');
   });
 
   protected selectionnerSemestre(semestre: string): void {

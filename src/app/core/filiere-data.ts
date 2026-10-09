@@ -10,7 +10,10 @@ export class FiliereData {
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
-    return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    return new HttpHeaders({
+      Authorization: token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json'
+    });
   }
 
   getAll(): Observable<any> {

@@ -23,8 +23,7 @@ export class EspaceAdmin {
     const role = this.roleFiltre();
     return this.data.comptes().filter((c) => {
       const matchRole = role === 'Tous les rôles' || c.role === role;
-      const matchTexte =
-        !texte || c.nom.toLowerCase().includes(texte) || c.email.toLowerCase().includes(texte);
+      const matchTexte = !texte || c.nom.toLowerCase().includes(texte) || c.email.toLowerCase().includes(texte);
       return matchRole && matchTexte;
     });
   });
@@ -37,24 +36,20 @@ export class EspaceAdmin {
     return Array.from(comptage.entries()).map(([role, count]) => ({ role, count }));
   });
 
-  // Stats fixes (mock, non lie aux autres services pour l'instant)
-  protected readonly totalNotes = 10;
+  protected readonly totalNotes = 0;
   protected readonly totalReclamations = 0;
 
-  // Formulaire "Nouveau compte"
   protected readonly formulaireOuvert = signal(false);
   protected nouveauNom = '';
   protected nouvelEmail = '';
-  protected nouveauRole = this.roles[1]; // Étudiant par defaut
+  protected nouveauRole = this.roles[1];
   protected nouveauxDetails = '';
 
-  // Edition inline d'un compte existant
   protected readonly compteEnEdition = signal<string | null>(null);
   protected nomEdite = '';
   protected roleEdite = '';
   protected detailsEdites = '';
 
-  // Feedback temporaire apres reinitialisation de mot de passe
   protected readonly compteReinitialise = signal<string | null>(null);
 
   protected basculerFormulaire(): void {
@@ -63,14 +58,12 @@ export class EspaceAdmin {
 
   protected creerCompte(): void {
     if (!this.nouveauNom.trim() || !this.nouvelEmail.trim()) return;
-
     this.data.creerCompte({
       nom: this.nouveauNom.trim(),
       email: this.nouvelEmail.trim(),
       role: this.nouveauRole,
       details: this.nouveauxDetails.trim() || '—',
     });
-
     this.nouveauNom = '';
     this.nouvelEmail = '';
     this.nouveauxDetails = '';
@@ -110,7 +103,7 @@ export class EspaceAdmin {
   }
 
   protected purgerJournal(): void {
-    if (!confirm('Purger tout le journal d’audit ? Cette action est irréversible.')) return;
+    if (!confirm('Purger tout le journal ?')) return;
     this.data.purgerJournal();
   }
 }

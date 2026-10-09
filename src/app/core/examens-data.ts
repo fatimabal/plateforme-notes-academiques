@@ -1,47 +1,43 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../environments/environment';
+import { Injectable, signal } from '@angular/core';
+import { Observable, of } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ExamensData {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = environment.apiUrl;
+  readonly semestres = ['L1-S1', 'L1-S2', 'L2-S1', 'L2-S2', 'L3-S1', 'L3-S2'];
 
-  private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
+  private readonly deliberationsSignal = signal<Record<string, any>>({
+    'L3-S1': {
+      semestre: 'L3-S1',
+      lignes: [
+        { etudiant: 'Alice Yaya', classe: 'L3 GL', notesPubliees: 6, notesAttendues: 6, moyenne: 15.4, decision: 'attente', observation: 'Moyenne stable, ? valider' },
+        { etudiant: 'Brahim Diallo', classe: 'L2 SI', notesPubliees: 5, notesAttendues: 6, moyenne: 14.1, decision: 'attente', observation: 'Une note manquante' }
+      ]
+    }
+  });
+
+  getSemestres(): Observable<string[]> {
+    return of(this.semestres);
   }
 
-
-  // Récupérer tous les semestres
-  getSemestres(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/semestres`, {
-      headers: this.getHeaders()
-    });
+  getDeliberation(semestre: string): any {
+    return this.deliberationsSignal()[semestre] ?? { semestre, lignes: [] };
   }
 
-  // Récupérer les notes validées
-  getNotes(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/notes`, {
-      headers: this.getHeaders()
-    });
+  lancerDeliberation(semestre: string): void {
+    this.deliberationsSignal.update((dict) => ({
+      ...dict,
+      [semestre]: {
+        semestre,
+        lignes: (dict[semestre]?.lignes ?? []).map((ligne: any) => ({ ...ligne, decision: 'delibere' }))
+      }
+    }));
   }
 
-  // Valider une note (délibération)
   validerNote(noteId: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/notes/${noteId}/valider`, {}, {
-      headers: this.getHeaders()
-    });
+    return of({ success: true, noteId });
   }
 
-  // Générer un bulletin
   genererBulletin(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/bulletins`, data, {
-      headers: this.getHeaders()
-    });
+    return of({ success: true, data });
   }
 }

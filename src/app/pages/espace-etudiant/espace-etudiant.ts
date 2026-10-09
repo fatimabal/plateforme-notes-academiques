@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { EtudiantData } from '../../core/etudiant-data';
 import { ProfilEtudiant } from '../../core/models/etudiant.model';
-
+import { SemestreEtudiant } from '../../core/models/etudiant.model';
 @Component({
   selector: 'app-espace-etudiant',
   imports: [CommonModule, FormsModule, RouterLink],
@@ -29,10 +29,16 @@ export class EspaceEtudiant {
   protected readonly reclamationsEnvoyees = signal<Set<string>>(new Set());
 
   constructor() {
-    this.etudiantData.getProfil().subscribe((profil) => {
-      this.profil.set(profil);
-      const actuel = profil.semestres.find((s) => s.actuel);
-      this.semestreSelectionneCode.set(actuel?.code ?? profil.semestres[0]?.code ?? null);
+    this.etudiantData.getProfil().subscribe({
+      next: (profil: ProfilEtudiant) => {
+        this.profil.set(profil);
+
+        const actuel = profil.semestres.find((s: SemestreEtudiant) => s.actuel);
+        this.semestreSelectionneCode.set(actuel?.code ?? profil.semestres[0]?.code ?? null);
+      },
+      error: (err: unknown) => {
+        console.error('Erreur chargement profil étudiant', err);
+      }
     });
   }
 
