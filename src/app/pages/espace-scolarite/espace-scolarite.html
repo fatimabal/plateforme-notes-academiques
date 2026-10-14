@@ -1,0 +1,50 @@
+<div class="page">
+  <header class="entete-page">
+    <div class="marque-entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-entete" />
+      <div>
+        <p class="titre-entete">ISI · Gestion des Notes</p>
+        <p class="soustitre-entete">Institut Supérieur d'Informatique</p>
+      </div>
+    </div>
+    <div class="utilisateur-entete">
+      <div class="identite-utilisateur">
+        <p class="nom-utilisateur">{{ nomScolarite }}</p>
+        <p class="role-utilisateur">Scolarité</p>
+      </div>
+
+      <!-- Cloche notifications -->
+      <div class="cloche-container" style="position:relative; display:inline-block;">
+        <button type="button" class="bouton-reset" (click)="afficherNotifs.set(!afficherNotifs())">
+          🔔
+          @if (notif.nonLues() > 0) {
+            <span class="badge-notif">{{ notif.nonLues() }}</span>
+          }
+        </button>
+        @if (afficherNotifs()) {
+          <div class="dropdown-notifs" style="position:absolute; right:0; top:40px; width:320px; background:white; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:999; padding:8px;">
+            <p style="font-weight:bold; padding:8px; border-bottom:1px solid #eee;">Notifications</p>
+            @if (notif.notifications().length === 0) {
+              <p style="padding:12px; color:#888;">Aucune notification</p>
+            }
+            @for (n of notif.notifications(); track n.id) {
+              <div style="padding:10px 8px; border-bottom:1px solid #f0f0f0; font-size:13px;">
+                {{ n.data.message }}
+              </div>
+            }
+            <button type="button" style="width:100%; padding:8px; background:#f5f5f5; border:none; cursor:pointer; border-radius:0 0 8px 8px;" (click)="notif.marquerLues()">
+              Tout marquer comme lu
+            </button>
+          </div>
+        }
+      </div>
+
+      <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
+    </div>
+  </header>
+
+  <main class="contenu">
+    <h1 class="titre-page">Tableau de bord — Scolarité</h1>
+    <p style="color:#888;">Fonctionnalités de gestion des inscriptions, bulletins et réclamations disponibles via l'API.</p>
+  </main>
+</div>

@@ -8,8 +8,8 @@ import { EspaceComptabilite } from './pages/espace-comptabilite/espace-comptabil
 import { EspaceAgentServiceExamen } from './pages/espace-agent-service-examen/espace-agent-service-examen';
 import { EspaceChefDepartement } from './pages/espace-chef-departement/espace-chef-departement';
 import { EspaceAdmin } from './pages/espace-admin/espace-admin';
+import { EspaceScolarite } from './pages/espace-scolarite/espace-scolarite';
 import { authGuard } from './core/auth.guard';
-
 export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'inscription', component: Inscription },
@@ -22,4 +22,5 @@ export const routes: Routes = [
   { path: 'espace-admin', component: EspaceAdmin, canActivate: [authGuard] },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },
+  { path: 'espace-scolarite', component: EspaceScolarite, canActivate: [authGuard] },
 ];
