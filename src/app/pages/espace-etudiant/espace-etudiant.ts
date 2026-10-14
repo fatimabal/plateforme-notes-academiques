@@ -5,9 +5,11 @@ import { RouterLink } from '@angular/router';
 import { EtudiantData } from '../../core/etudiant-data';
 import { ProfilEtudiant } from '../../core/models/etudiant.model';
 import { SemestreEtudiant } from '../../core/models/etudiant.model';
+import { NotificationService } from '../../core/notification.service';
+import { HttpClientModule } from '@angular/common/http';
 @Component({
   selector: 'app-espace-etudiant',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, HttpClientModule],
   templateUrl: './espace-etudiant.html',
   styleUrl: './espace-etudiant.scss',
 })
@@ -29,18 +31,18 @@ export class EspaceEtudiant {
   protected readonly reclamationsEnvoyees = signal<Set<string>>(new Set());
 
   constructor() {
-    this.etudiantData.getProfil().subscribe({
-      next: (profil: ProfilEtudiant) => {
-        this.profil.set(profil);
-
-        const actuel = profil.semestres.find((s: SemestreEtudiant) => s.actuel);
-        this.semestreSelectionneCode.set(actuel?.code ?? profil.semestres[0]?.code ?? null);
-      },
-      error: (err: unknown) => {
-        console.error('Erreur chargement profil étudiant', err);
-      }
-    });
-  }
+  this.notif.charger();  
+  this.etudiantData.getProfil().subscribe({
+    next: (profil: ProfilEtudiant) => {
+      this.profil.set(profil);
+      const actuel = profil.semestres.find((s: SemestreEtudiant) => s.actuel);
+      this.semestreSelectionneCode.set(actuel?.code ?? profil.semestres[0]?.code ?? null);
+    },
+    error: (err: unknown) => {
+      console.error('Erreur chargement profil étudiant', err);
+    }
+  });
+}
 
   protected selectionnerSemestre(code: string): void {
     this.semestreSelectionneCode.set(code);
@@ -82,4 +84,6 @@ export class EspaceEtudiant {
     if (actuel) this.semestreSelectionneCode.set(actuel.code);
     this.reclamationOuverte.set(null);
   }
+  protected readonly notif = inject(NotificationService);
+  protected afficherNotifs = signal(false);
 }

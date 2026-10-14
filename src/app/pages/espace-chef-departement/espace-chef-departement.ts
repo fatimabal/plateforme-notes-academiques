@@ -2,11 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ChefDepartementData } from '../../core/chef-departement-data';
+import { NotificationService } from '../../core/notification.service';
+import { HttpClientModule } from '@angular/common/http';
 const SEUIL_DIFFICULTE = 13;
 
 @Component({
   selector: 'app-espace-chef-departement',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink,HttpClientModule],
   templateUrl: './espace-chef-departement.html',
   styleUrl: './espace-chef-departement.scss',
 })
@@ -52,4 +54,8 @@ export class EspaceChefDepartement {
   protected largeurBarre(count: number): number {
     return (count / this.maxDistribution()) * 100;
   }
+  protected readonly notif = inject(NotificationService);
+protected afficherNotifs = signal(false);
+
+constructor() { this.notif.charger(); }
 }

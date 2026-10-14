@@ -3,12 +3,14 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { EnseignantData } from '../../core/enseignant-data';
-
+import { NotificationService } from '../../core/notification.service';
+import { HttpClientModule } from '@angular/common/http';
 @Component({
   selector: 'app-espace-enseignant',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink,HttpClientModule],
   templateUrl: './espace-enseignant.html',
   styleUrl: './espace-enseignant.scss',
+  
 })
 export class EspaceEnseignant {
   protected readonly data = inject(EnseignantData);
@@ -70,4 +72,10 @@ export class EspaceEnseignant {
     this.data.modifierNote(id, this.noteEditee, this.coefficientEdite);
     this.noteEnEdition.set(null);
   }
+  protected readonly notif = inject(NotificationService);
+protected afficherNotifs = signal(false);
+
+constructor() {
+  this.notif.charger();
+}
 }

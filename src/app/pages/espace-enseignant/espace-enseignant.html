@@ -12,6 +12,34 @@
         <p class="nom-utilisateur">{{ nomEnseignant }}</p>
         <p class="role-utilisateur">Enseignant</p>
       </div>
+      <!-- Cloche notifications -->
+      <div class="cloche-container" style="position:relative; display:inline-block;">
+        <button type="button" class="bouton-reset" (click)="afficherNotifs.set(!afficherNotifs())">
+          🔔
+          @if (notif.nonLues() > 0) {
+          <span class="badge-notif">{{ notif.nonLues() }}</span>
+          }
+        </button>
+        @if (afficherNotifs()) {
+        <div class="dropdown-notifs"
+          style="position:absolute; right:0; top:40px; width:320px; background:white; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:999; padding:8px;">
+          <p style="font-weight:bold; padding:8px; border-bottom:1px solid #eee;">Notifications</p>
+          @if (notif.notifications().length === 0) {
+          <p style="padding:12px; color:#888;">Aucune notification</p>
+          }
+          @for (n of notif.notifications(); track n.id) {
+          <div style="padding:10px 8px; border-bottom:1px solid #f0f0f0; font-size:13px;">
+            {{ n.data.message }}
+          </div>
+          }
+          <button type="button"
+            style="width:100%; padding:8px; background:#f5f5f5; border:none; cursor:pointer; border-radius:0 0 8px 8px;"
+            (click)="notif.marquerLues()">
+            Tout marquer comme lu
+          </button>
+        </div>
+        }
+      </div>
       <button type="button" class="bouton-reset">↻ Reset</button>
       <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
     </div>
@@ -29,7 +57,7 @@
             <label for="matiere">Matière</label>
             <select id="matiere" formControlName="matiere">
               @for (m of matieres; track m) {
-                <option [value]="m">{{ m }}</option>
+              <option [value]="m">{{ m }}</option>
               }
             </select>
           </div>
@@ -38,7 +66,7 @@
             <label for="etudiant">Étudiant</label>
             <select id="etudiant" formControlName="etudiant">
               @for (e of etudiants; track e) {
-                <option [value]="e">{{ e }}</option>
+              <option [value]="e">{{ e }}</option>
               }
             </select>
           </div>
@@ -47,7 +75,7 @@
             <label for="type">Type</label>
             <select id="type" formControlName="type">
               @for (t of typesEvaluation; track t) {
-                <option [value]="t">{{ t }}</option>
+              <option [value]="t">{{ t }}</option>
               }
             </select>
           </div>
@@ -56,7 +84,7 @@
             <label for="semestre">Semestre</label>
             <select id="semestre" formControlName="semestre">
               @for (s of semestres; track s) {
-                <option [value]="s">{{ s }}</option>
+              <option [value]="s">{{ s }}</option>
               }
             </select>
           </div>
@@ -80,53 +108,53 @@
         <section class="carte">
           <h2 class="titre-carte">Réclamations reçues ({{ data.reclamationsOuvertes().length }})</h2>
           @if (data.reclamationsOuvertes().length === 0) {
-            <p class="etat-vide">Aucune réclamation pour le moment.</p>
+          <p class="etat-vide">Aucune réclamation pour le moment.</p>
           } @else {
-            <ul class="liste-reclamations">
-              @for (r of data.reclamationsOuvertes(); track r.id) {
-                <li>
-                  <div>
-                    <p class="ligne-reclamation-titre">{{ r.etudiant }} · {{ r.matiere }} ({{ r.type }})</p>
-                    <p class="ligne-reclamation-motif">{{ r.motif }}</p>
-                  </div>
-                  <button type="button" class="bouton-secondaire" (click)="data.traiterReclamation(r.id)">
-                    Marquer traitée
-                  </button>
-                </li>
-              }
-            </ul>
+          <ul class="liste-reclamations">
+            @for (r of data.reclamationsOuvertes(); track r.id) {
+            <li>
+              <div>
+                <p class="ligne-reclamation-titre">{{ r.etudiant }} · {{ r.matiere }} ({{ r.type }})</p>
+                <p class="ligne-reclamation-motif">{{ r.motif }}</p>
+              </div>
+              <button type="button" class="bouton-secondaire" (click)="data.traiterReclamation(r.id)">
+                Marquer traitée
+              </button>
+            </li>
+            }
+          </ul>
           }
         </section>
 
         <section class="carte">
           <h2 class="titre-carte">Brouillons à valider ({{ data.brouillons().length }})</h2>
           @if (data.brouillons().length === 0) {
-            <p class="etat-vide">Aucune note en attente.</p>
+          <p class="etat-vide">Aucune note en attente.</p>
           } @else {
-            <ul class="liste-brouillons">
-              @for (n of data.brouillons(); track n.id) {
-                <li>
-                  <span>{{ n.etudiant }} · {{ n.matiere }} ({{ n.type }}) — {{ n.note }}/20</span>
-                  <button type="button" class="bouton-secondaire" (click)="data.validerBrouillon(n.id)">Valider</button>
-                </li>
-              }
-            </ul>
+          <ul class="liste-brouillons">
+            @for (n of data.brouillons(); track n.id) {
+            <li>
+              <span>{{ n.etudiant }} · {{ n.matiere }} ({{ n.type }}) — {{ n.note }}/20</span>
+              <button type="button" class="bouton-secondaire" (click)="data.validerBrouillon(n.id)">Valider</button>
+            </li>
+            }
+          </ul>
           }
         </section>
 
         <section class="carte">
           <h2 class="titre-carte">Notes validées prêtes à publier ({{ data.validees().length }})</h2>
           @if (data.validees().length === 0) {
-            <p class="etat-vide">Aucune note validée en attente de publication.</p>
+          <p class="etat-vide">Aucune note validée en attente de publication.</p>
           } @else {
-            <ul class="liste-brouillons">
-              @for (n of data.validees(); track n.id) {
-                <li>
-                  <span>{{ n.etudiant }} · {{ n.matiere }} ({{ n.type }}) — {{ n.note }}/20</span>
-                  <button type="button" class="bouton-principal-petit" (click)="data.publierNote(n.id)">Publier</button>
-                </li>
-              }
-            </ul>
+          <ul class="liste-brouillons">
+            @for (n of data.validees(); track n.id) {
+            <li>
+              <span>{{ n.etudiant }} · {{ n.matiere }} ({{ n.type }}) — {{ n.note }}/20</span>
+              <button type="button" class="bouton-principal-petit" (click)="data.publierNote(n.id)">Publier</button>
+            </li>
+            }
+          </ul>
           }
         </section>
 
@@ -146,28 +174,31 @@
             </thead>
             <tbody>
               @for (n of data.publiees(); track n.id) {
-                <tr>
-                  <td>{{ n.etudiant }}</td>
-                  <td>{{ n.matiere }}</td>
-                  <td>{{ n.type }}</td>
-                  <td>
-                    @if (noteEnEdition() === n.id) {
-                      <input type="number" [(ngModel)]="noteEditee" [ngModelOptions]="{standalone: true}" class="input-edition" />
-                    } @else {
-                      {{ n.note }}/20
-                    }
-                  </td>
-                  <td><span class="badge-statut">publiée</span></td>
-                  <td>{{ n.reclamee ? 'Réclamé' : '—' }}</td>
-                  <td class="colonne-action">
-                    @if (noteEnEdition() === n.id) {
-                      <button type="button" class="bouton-icone" (click)="enregistrerEdition(n.id)" title="Enregistrer">✓</button>
-                      <button type="button" class="bouton-icone" (click)="annulerEdition()" title="Annuler">✕</button>
-                    } @else {
-                      <button type="button" class="bouton-icone" (click)="ouvrirEdition(n.id, n.note, n.coefficient)" title="Modifier">✏️</button>
-                    }
-                  </td>
-                </tr>
+              <tr>
+                <td>{{ n.etudiant }}</td>
+                <td>{{ n.matiere }}</td>
+                <td>{{ n.type }}</td>
+                <td>
+                  @if (noteEnEdition() === n.id) {
+                  <input type="number" [(ngModel)]="noteEditee" [ngModelOptions]="{standalone: true}"
+                    class="input-edition" />
+                  } @else {
+                  {{ n.note }}/20
+                  }
+                </td>
+                <td><span class="badge-statut">publiée</span></td>
+                <td>{{ n.reclamee ? 'Réclamé' : '—' }}</td>
+                <td class="colonne-action">
+                  @if (noteEnEdition() === n.id) {
+                  <button type="button" class="bouton-icone" (click)="enregistrerEdition(n.id)"
+                    title="Enregistrer">✓</button>
+                  <button type="button" class="bouton-icone" (click)="annulerEdition()" title="Annuler">✕</button>
+                  } @else {
+                  <button type="button" class="bouton-icone" (click)="ouvrirEdition(n.id, n.note, n.coefficient)"
+                    title="Modifier">✏️</button>
+                  }
+                </td>
+              </tr>
               }
             </tbody>
           </table>
