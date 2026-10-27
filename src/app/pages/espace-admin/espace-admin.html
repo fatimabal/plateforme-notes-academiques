@@ -180,16 +180,19 @@
             placeholder="Ex: Génie Logiciel" />
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
+            Ajouter' }}</button>
           @if (refEnEdition) {
-            <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
-          }        </div>
+          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
+          }
+        </div>
       </div>
       <table class="table-comptes">
         <thead>
           <tr>
             <th>Nom</th>
-            <th style="text-align:right; padding-right:1rem;">Actions</th>          </tr>
+            <th style="text-align:right; padding-right:1rem;">Actions</th>
+          </tr>
         </thead>
         <tbody>
           @for (d of departements(); track d.id) {
@@ -227,7 +230,11 @@
           </select>
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">+ Ajouter</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
+            Ajouter' }}</button>
+          @if (refEnEdition) {
+          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
+          }
         </div>
       </div>
       <table class="table-comptes">
@@ -236,7 +243,7 @@
             <th>Nom</th>
             <th>Diplôme</th>
             <th>Département</th>
-            <th class="colonne-actions">Actions</th>
+            <th style="text-align:right; padding-right:1rem;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -246,6 +253,7 @@
             <td>{{ f.diplome }}</td>
             <td>{{ f.departement?.nom }}</td>
             <td class="colonne-actions">
+              <button type="button" class="bouton-icone" (click)="modifierRef(f)">✏️</button>
               <button type="button" class="bouton-icone bouton-icone-danger"
                 (click)="supprimerRef('filieres', f.id)">🗑️</button>
             </td>
@@ -274,7 +282,11 @@
           </select>
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">+ Ajouter</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
+            Ajouter' }}</button>
+          @if (refEnEdition) {
+          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
+          }
         </div>
       </div>
       <table class="table-comptes">
@@ -283,7 +295,7 @@
             <th>Nom</th>
             <th>Niveau</th>
             <th>Filière</th>
-            <th class="colonne-actions">Actions</th>
+            <th style="text-align:right; padding-right:1rem;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -293,8 +305,10 @@
             <td>{{ c.niveau }}</td>
             <td>{{ c.filiere?.nom }}</td>
             <td class="colonne-actions">
+              <button type="button" class="bouton-icone" (click)="modifierRef(c)">✏️</button>
               <button type="button" class="bouton-icone bouton-icone-danger"
                 (click)="supprimerRef('classes', c.id)">🗑️</button>
+
             </td>
           </tr>
           }
@@ -309,14 +323,18 @@
           <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Semestre 1" />
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">+ Ajouter</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
+            Ajouter' }}</button>
+          @if (refEnEdition) {
+          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
+          }
         </div>
       </div>
       <table class="table-comptes">
         <thead>
           <tr>
             <th>Libellé</th>
-            <th class="colonne-actions">Actions</th>
+            <th style="text-align:right; padding-right:1rem;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -324,6 +342,7 @@
           <tr>
             <td class="nom-fort">{{ s.libelle }}</td>
             <td class="colonne-actions">
+              <button type="button" class="bouton-icone" (click)="modifierRef(s)">✏️</button>
               <button type="button" class="bouton-icone bouton-icone-danger"
                 (click)="supprimerRef('semestres', s.id)">🗑️</button>
             </td>
@@ -354,7 +373,11 @@
           </select>
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">+ Ajouter</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
+            Ajouter' }}</button>
+          @if (refEnEdition) {
+          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
+          }
         </div>
       </div>
       <table class="table-comptes">
@@ -362,7 +385,7 @@
           <tr>
             <th>Libellé</th>
             <th>Semestre</th>
-            <th class="colonne-actions">Actions</th>
+            <th style="text-align:right; padding-right:1rem;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -371,6 +394,7 @@
             <td class="nom-fort">{{ u.libelle }}</td>
             <td>{{ u.semestre?.libelle }}</td>
             <td class="colonne-actions">
+              <button type="button" class="bouton-icone" (click)="modifierRef(u)">✏️</button>
               <button type="button" class="bouton-icone bouton-icone-danger"
                 (click)="supprimerRef('ues', u.id)">🗑️</button>
             </td>
@@ -408,7 +432,11 @@
           </select>
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">+ Ajouter</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
+            Ajouter' }}</button>
+          @if (refEnEdition) {
+          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
+          }
         </div>
       </div>
       <table class="table-comptes">
@@ -418,7 +446,7 @@
             <th>Coefficient</th>
             <th>Crédits</th>
             <th>UE</th>
-            <th class="colonne-actions">Actions</th>
+            <th style="text-align:right; padding-right:1rem;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -429,6 +457,7 @@
             <td>{{ m.credits }}</td>
             <td>{{ m.ue?.libelle }}</td>
             <td class="colonne-actions">
+              <button type="button" class="bouton-icone" (click)="modifierRef(m)">✏️</button>
               <button type="button" class="bouton-icone bouton-icone-danger"
                 (click)="supprimerRef('matieres', m.id)">🗑️</button>
             </td>
