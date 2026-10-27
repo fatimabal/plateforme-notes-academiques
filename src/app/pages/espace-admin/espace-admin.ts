@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AdminData } from '../../core/admin-data';
@@ -11,8 +12,10 @@ import { CompteUtilisateur } from '../../core/models/admin.model';
   templateUrl: './espace-admin.html',
   styleUrl: './espace-admin.scss',
 })
-export class EspaceAdmin {
+export class EspaceAdmin implements OnInit {
   protected readonly data = inject(AdminData);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = 'http://localhost:8000/api';
 
   protected readonly roles = this.data.roles;
   protected readonly recherche = signal('');
@@ -51,6 +54,154 @@ export class EspaceAdmin {
   protected detailsEdites = '';
 
   protected readonly compteReinitialise = signal<string | null>(null);
+
+  protected readonly onglets = ['Départements', 'Filières', 'Classes', 'Semestres', 'UE', 'Modules'];
+  protected readonly ongletActif = signal('Départements');
+
+  protected readonly departements = signal<any[]>([]);
+  protected readonly filieres = signal<any[]>([]);
+  protected readonly classes = signal<any[]>([]);
+  protected readonly semestres = signal<any[]>([]);
+  protected readonly ues = signal<any[]>([]);
+  protected readonly modules = signal<any[]>([]);
+
+protected champNom = '';
+protected champDiplome = '';
+  protected champNiveau = '';
+  protected champDepartementId: number | null = null;
+  protected champFiliereId: number | null = null;
+  protected champSemestreId: number | null = null;
+  protected champUeId: number | null = null;
+  protected champCoefficient: number = 1;
+  protected champCredits: number = 1;
+  protected champVolumeHoraire: number = 0;
+  protected refEnEdition: any = null;
+  private get headers(): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  }
+
+  ngOnInit(): void {
+    this.chargerTout();
+  }
+
+  private chargerTout(): void {
+    this.charger('departements', this.departements);
+    this.charger('filieres', this.filieres);
+    this.charger('classes', this.classes);
+    this.charger('semestres', this.semestres);
+    this.charger('ues', this.ues);
+    this.charger('matieres', this.modules);
+  }
+
+  private charger(endpoint: string, cible: ReturnType<typeof signal<any[]>>): void {
+    this.http.get<any[]>(`${this.apiUrl}/${endpoint}`, { headers: this.headers }).subscribe({
+      next: (data) => cible.set(Array.isArray(data) ? data : []),
+      error: () => cible.set([])
+    });
+  }
+
+  private chargerEndpoint(onglet: string): void {
+    if (onglet === 'Départements') this.charger('departements', this.departements);
+    else if (onglet === 'Filières') this.charger('filieres', this.filieres);
+    else if (onglet === 'Classes') this.charger('classes', this.classes);
+    else if (onglet === 'Semestres') this.charger('semestres', this.semestres);
+    else if (onglet === 'UE') this.charger('ues', this.ues);
+    else if (onglet === 'Modules') this.charger('matieres', this.modules);
+  }
+protected ajouterRef(): void {
+  const onglet = this.ongletActif();
+  let endpoint = '';
+  let body: any = {};
+
+  if (onglet === 'Départements') {
+    endpoint = 'departements';
+    body = { nom: this.champNom };
+  } else if (onglet === 'Filières') {
+    endpoint = 'filieres';
+    body = { nom: this.champNom, diplome: this.champDiplome, departement_id: Number(this.champDepartementId) };
+  } else if (onglet === 'Classes') {
+    endpoint = 'classes';
+    body = { nomClasse: this.champNom, niveau: this.champNiveau, filiere_id: Number(this.champFiliereId) };
+  } else if (onglet === 'Semestres') {
+    endpoint = 'semestres';
+    body = { libelle: this.champNom };
+  } else if (onglet === 'UE') {
+    endpoint = 'ues';
+    body = { libelle: this.champNom, credits: Number(this.champCredits), semestre_id: Number(this.champSemestreId) };
+  } else if (onglet === 'Modules') {
+    endpoint = 'matieres';
+    body = { libelle: this.champNom, coefficient: this.champCoefficient, credits: this.champCredits, volumeHoraire: this.champVolumeHoraire, ue_id: Number(this.champUeId) };
+  }
+
+  const requete = this.refEnEdition
+    ? this.http.put<any>(`${this.apiUrl}/${endpoint}/${this.refEnEdition.id}`, body, { headers: this.headers })
+    : this.http.post<any>(`${this.apiUrl}/${endpoint}`, body, { headers: this.headers });
+
+  requete.subscribe({
+    next: () => {
+      this.champNom = '';
+      this.champDiplome = '';
+      this.champNiveau = '';
+      this.champDepartementId = null;
+      this.champFiliereId = null;
+      this.champSemestreId = null;
+      this.champUeId = null;
+      this.champVolumeHoraire = 0;
+      this.refEnEdition = null;
+      this.chargerEndpoint(onglet);
+    },
+    error: (err) => console.error('ERREUR AJOUT:', err)
+  });
+}
+
+protected modifierRef(item: any): void {
+  const onglet = this.ongletActif();
+  this.refEnEdition = item;
+  if (onglet === 'Départements') {
+    this.champNom = item.nom;
+  } else if (onglet === 'Filières') {
+    this.champNom = item.nom;
+    this.champDiplome = item.diplome ?? '';
+    this.champDepartementId = item.departement_id;
+  } else if (onglet === 'Classes') {
+    this.champNom = item.nomClasse;
+    this.champNiveau = item.niveau;
+    this.champFiliereId = item.filiere_id;
+  } else if (onglet === 'Semestres') {
+    this.champNom = item.libelle;
+  } else if (onglet === 'UE') {
+    this.champNom = item.libelle;
+    this.champCredits = item.credits;
+    this.champSemestreId = item.semestre_id;
+  } else if (onglet === 'Modules') {
+    this.champNom = item.libelle;
+    this.champCoefficient = item.coefficient;
+    this.champCredits = item.credits;
+    this.champVolumeHoraire = item.volumeHoraire;
+    this.champUeId = item.ue_id;
+  }
+}
+
+protected annulerModif(): void {
+  this.refEnEdition = null;
+  this.champNom = '';
+  this.champDiplome = '';
+  this.champNiveau = '';
+  this.champDepartementId = null;
+  this.champFiliereId = null;
+  this.champSemestreId = null;
+  this.champUeId = null;
+  this.champVolumeHoraire = 0;
+}
+   
+  protected supprimerRef(endpoint: string, id: number): void {
+    if (!confirm('Supprimer cet élément ?')) return;
+    const onglet = this.ongletActif();
+    this.http.delete(`${this.apiUrl}/${endpoint}/${id}`, { headers: this.headers }).subscribe({
+      next: () => this.chargerEndpoint(onglet),
+      error: () => {}
+    });
+  }
 
   protected basculerFormulaire(): void {
     this.formulaireOuvert.update((v) => !v);
