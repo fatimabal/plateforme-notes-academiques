@@ -64,6 +64,9 @@ export class Login {
             this.router.navigate(['/espace-enseignant']);
             break;
         case 'scolarite':
+            this.router.navigate(['/espace-scolarite']);
+            break;
+        case 'agent_service_examen':
             this.router.navigate(['/espace-agent-service-examen']);
             break;
         case 'parent':

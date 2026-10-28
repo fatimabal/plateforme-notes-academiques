@@ -46,8 +46,7 @@
 
     <div class="ligne-semestres">
       <span class="label-semestres">Semestre :</span>
-      @for (s of semestres; track s) {
-        <button
+@for (s of semestres(); track s) {        <button
           type="button"
           class="semestre"
           [class.semestre-actif]="s === semestreSelectionne()"
