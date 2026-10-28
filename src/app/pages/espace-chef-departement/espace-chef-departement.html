@@ -12,165 +12,167 @@
         <p class="nom-utilisateur">{{ nomChef }}</p>
         <p class="role-utilisateur">Chef de département</p>
       </div>
-      <div class="cloche-container" style="position:relative; display:inline-block;">
-  <button type="button" class="bouton-reset" (click)="afficherNotifs.set(!afficherNotifs())">
-    🔔
-    @if (notif.nonLues() > 0) {
-      <span class="badge-notif">{{ notif.nonLues() }}</span>
-    }
-  </button>
-  @if (afficherNotifs()) {
-    <div class="dropdown-notifs" style="position:absolute; right:0; top:40px; width:320px; background:white; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:999; padding:8px;">
-      <p style="font-weight:bold; padding:8px; border-bottom:1px solid #eee;">Notifications</p>
-      @if (notif.notifications().length === 0) {
-        <p style="padding:12px; color:#888;">Aucune notification</p>
-      }
-      @for (n of notif.notifications(); track n.id) {
-        <div style="padding:10px 8px; border-bottom:1px solid #f0f0f0; font-size:13px;">
-          {{ n.data.message }}
-        </div>
-      }
-      <button type="button" style="width:100%; padding:8px; background:#f5f5f5; border:none; cursor:pointer; border-radius:0 0 8px 8px;" (click)="notif.marquerLues()">
-        Tout marquer comme lu
-      </button>
-    </div>
-  }
-</div>
-      <button type="button" class="bouton-reset">↻ Reset</button>
+      <div style="position:relative; display:inline-block;">
+        <button type="button" class="bouton-reset" (click)="afficherNotifs.set(!afficherNotifs())">
+          🔔
+          @if (notif.nonLues() > 0) {
+            <span class="badge-notif">{{ notif.nonLues() }}</span>
+          }
+        </button>
+        @if (afficherNotifs()) {
+          <div class="dropdown-notifs" style="position:absolute; right:0; top:40px; width:320px; background:white; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:999; padding:8px;">
+            <p style="font-weight:bold; padding:8px; border-bottom:1px solid #eee;">Notifications</p>
+            @if (notif.notifications().length === 0) {
+              <p style="padding:12px; color:#888;">Aucune notification</p>
+            }
+            @for (n of notif.notifications(); track n.id) {
+              <div style="padding:10px 8px; border-bottom:1px solid #f0f0f0; font-size:13px;">{{ n.data?.message }}</div>
+            }
+            <button type="button" style="width:100%; padding:8px; background:#f5f5f5; border:none; cursor:pointer; border-radius:0 0 8px 8px;" (click)="notif.marquerLues()">
+              Tout marquer comme lu
+            </button>
+          </div>
+        }
+      </div>
       <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
     </div>
   </header>
 
   <main class="contenu">
-    <h1 class="titre-page">Tableau de bord pédagogique</h1>
+    <h1 class="titre-page">Espace Chef de Département</h1>
 
-    <div class="ligne-semestres">
-      <span class="label-semestres">Semestre :</span>
-      @for (s of semestres; track s) {
-        <button
-          type="button"
-          class="semestre"
-          [class.semestre-actif]="s === semestreSelectionne()"
-          (click)="selectionnerSemestre(s)"
-        >
-          {{ s }}
-        </button>
+    @if (messageSucces) {
+      <div style="background:#d4edda; color:#155724; padding:10px 16px; border-radius:6px; margin-bottom:1rem;">
+        {{ messageSucces }}
+      </div>
+    }
+
+    <div class="controles-gestion-comptes" style="margin-bottom:1.5rem;">
+      @for (onglet of onglets; track onglet) {
+        <button type="button"
+          [class]="ongletActif() === onglet ? 'bouton-principal' : 'bouton-annuler'"
+          (click)="ongletActif.set(onglet)">{{ onglet }}</button>
       }
     </div>
 
-    @if (tableauBord(); as t) {
-      <div class="grille-stats">
-        <div class="carte-stat">
-          <p class="label-stat"><span class="icone-stat">%</span> Taux de réussite</p>
-          <p class="valeur-stat">{{ t.tauxReussite }} %</p>
-        </div>
-        <div class="carte-stat">
-          <p class="label-stat"><span class="icone-stat">👥</span> Étudiants évalués</p>
-          <p class="valeur-stat">{{ t.etudiantsEvalues }}</p>
-        </div>
-        <div class="carte-stat">
-          <p class="label-stat"><span class="icone-stat">↗</span> Moyenne générale</p>
-          <p class="valeur-stat">{{ t.moyenneGenerale }}</p>
-        </div>
-        <div class="carte-stat">
-          <p class="label-stat"><span class="icone-stat">💬</span> Réclamations</p>
-          <p class="valeur-stat">{{ t.reclamationsTraitees }} / {{ t.reclamationsTotal }}</p>
-        </div>
-      </div>
+    @if (ongletActif() === 'Notes') {
+      <section class="carte">
+        <h2 class="titre-carte">Toutes les notes</h2>
+        @if (notes().length === 0) {
+          <p class="etat-vide">Aucune note disponible.</p>
+        } @else {
+          <table class="table-comptes">
+            <thead>
+              <tr>
+                <th>Étudiant</th>
+                <th>Module</th>
+                <th>Note</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (n of notes(); track n.id) {
+                <tr>
+                  <td class="nom-fort">{{ n.etudiant?.user?.name ?? '—' }}</td>
+                  <td>{{ n.evaluation?.matiere?.libelle ?? '—' }}</td>
+                  <td>{{ n.valeur }}/20</td>
+                  <td>{{ n.statut ?? '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    }
 
-      <div class="grille-deux-colonnes">
-        <section class="carte">
-          <h2 class="titre-carte">Moyennes par classe</h2>
-          <table class="table-donnees">
+    @if (ongletActif() === 'Réclamations') {
+      <section class="carte">
+        <h2 class="titre-carte">Réclamations</h2>
+        @if (reclamations().length === 0) {
+          <p class="etat-vide">Aucune réclamation.</p>
+        } @else {
+          <table class="table-comptes">
+            <thead>
+              <tr>
+                <th>Étudiant</th>
+                <th>Module</th>
+                <th>Motif</th>
+                <th>Statut</th>
+                <th style="text-align:right; padding-right:1rem;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of reclamations(); track r.id) {
+                <tr>
+                  <td class="nom-fort">{{ r.etudiant?.user?.name ?? '—' }}</td>
+                  <td>{{ r.note?.evaluation?.matiere?.libelle ?? '—' }}</td>
+                  <td>{{ r.motif }}</td>
+                  <td>{{ r.statut }}</td>
+                  <td style="text-align:right;">
+                    <button type="button" class="bouton-principal" style="font-size:12px; padding:4px 10px;"
+                      (click)="relancerReclamation(r.id)">Relancer</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    }
+
+    @if (ongletActif() === 'Délibérations') {
+      <section class="carte">
+        <h2 class="titre-carte">Valider une délibération</h2>
+        <div class="formulaire-nouveau-compte" style="margin-bottom:1.5rem;">
+          <div class="champ">
+            <label>Classe</label>
+            <select [(ngModel)]="champClasseId" [ngModelOptions]="{standalone:true}">
+              <option [ngValue]="null">-- Choisir --</option>
+              @for (c of classes(); track c.id) {
+                <option [ngValue]="c.id">{{ c.nomClasse }}</option>
+              }
+            </select>
+          </div>
+          <div class="champ">
+            <label>Semestre</label>
+            <select [(ngModel)]="champSemestreId" [ngModelOptions]="{standalone:true}">
+              <option [ngValue]="null">-- Choisir --</option>
+              @for (s of semestres(); track s.id) {
+                <option [ngValue]="s.id">{{ s.libelle }}</option>
+              }
+            </select>
+          </div>
+          <div class="actions-formulaire">
+            <button type="button" class="bouton-principal" (click)="validerDeliberation()">Valider</button>
+          </div>
+        </div>
+
+        <h2 class="titre-carte">Délibérations enregistrées</h2>
+        @if (deliberations().length === 0) {
+          <p class="etat-vide">Aucune délibération enregistrée.</p>
+        } @else {
+          <table class="table-comptes">
             <thead>
               <tr>
                 <th>Classe</th>
-                <th>Étudiants</th>
-                <th>Moyenne</th>
+                <th>Semestre</th>
+                <th>Statut</th>
+                <th>Date validation</th>
               </tr>
             </thead>
             <tbody>
-              @for (c of t.moyennesParClasse; track c.classe) {
+              @for (d of deliberations(); track d.id) {
                 <tr>
-                  <td class="nom-fort">{{ c.classe }}</td>
-                  <td>{{ c.etudiants }}</td>
-                  <td class="moyenne">{{ c.moyenne }}/20</td>
+                  <td class="nom-fort">{{ d.classe?.nomClasse ?? '—' }}</td>
+                  <td>{{ d.semestre?.libelle ?? '—' }}</td>
+                  <td>{{ d.statut }}</td>
+                  <td>{{ d.date_validation | date:'dd/MM/yyyy' }}</td>
                 </tr>
               }
             </tbody>
           </table>
-        </section>
-
-        <section class="carte">
-          <h2 class="titre-carte">Distribution des notes</h2>
-          <div class="liste-distribution">
-            @for (d of t.distribution; track d.tranche) {
-              <div class="ligne-distribution">
-                <span class="label-distribution">{{ d.tranche }}</span>
-                <div class="piste-distribution">
-                  <div class="barre-distribution" [style.width.%]="largeurBarre(d.count)"></div>
-                </div>
-                <span class="valeur-distribution">{{ d.count }}</span>
-              </div>
-            }
-          </div>
-        </section>
-      </div>
-
-      <div class="grille-deux-colonnes">
-        <section class="carte">
-          <h2 class="titre-carte">Moyennes par module</h2>
-          <table class="table-donnees">
-            <thead>
-              <tr>
-                <th>Module</th>
-                <th>Notes</th>
-                <th>Moyenne</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (m of t.moyennesParModule; track m.module) {
-                <tr>
-                  <td>{{ m.module }}</td>
-                  <td>{{ m.notes }}</td>
-                  <td class="moyenne">{{ m.moyenne }}/20</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </section>
-
-        <section class="carte">
-          <h2 class="titre-carte">Points d'attention</h2>
-
-          <p class="titre-groupe titre-groupe-hausse">↗ Meilleures performances</p>
-          <ul class="liste-points">
-            @for (m of meilleuresPerformances(); track m.module) {
-              <li>{{ m.module }} — <strong>{{ m.moyenne }}/20</strong></li>
-            }
-          </ul>
-
-          <p class="titre-groupe titre-groupe-baisse">↘ Modules les plus faibles</p>
-          <ul class="liste-points">
-            @for (m of modulesLesPlusFaibles(); track m.module) {
-              <li>{{ m.module }} — <strong>{{ m.moyenne }}/20</strong></li>
-            }
-          </ul>
-
-          <p class="titre-groupe titre-groupe-alerte">Étudiants nécessitant une attention</p>
-          @if (classesEnDifficulte().length === 0) {
-            <p class="etat-vide">Aucun étudiant en difficulté identifié.</p>
-          } @else {
-            <ul class="liste-points">
-              @for (c of classesEnDifficulte(); track c.classe) {
-                <li>{{ c.etudiants }} étudiant(s) en difficulté en {{ c.classe }} (moyenne {{ c.moyenne }}/20).</li>
-              }
-            </ul>
-          }
-        </section>
-      </div>
-    } @else {
-      <p class="etat-vide">Aucune donnée disponible pour ce semestre.</p>
+        }
+      </section>
     }
   </main>
 </div>
