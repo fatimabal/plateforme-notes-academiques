@@ -3,10 +3,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../core/notification.service';
-
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-espace-agent-service-examen',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './espace-agent-service-examen.html',
   styleUrl: './espace-agent-service-examen.scss',
 })
@@ -15,9 +15,10 @@ export class EspaceAgentServiceExamen implements OnInit {
   private readonly apiUrl = 'http://localhost:8000/api';
   protected readonly notif = inject(NotificationService);
   protected afficherNotifs = signal(false);
-
-  protected readonly nomService = 'Service des Examens';
-
+  protected afficherFormulaireExamen = signal(false);
+  protected examenForm = { typeEvaluation: '', dateEvaluation: '', noteMax: null as number | null, noteMin: null as number | null, coefficient: null as number | null, matiere_id: null as number | null, classe_id: null as number | null };
+  protected matieres = signal<any[]>([]);
+  protected classes = signal<any[]>([]);
   private readonly toutesLesNotes = signal<any[]>([]);
 
   private get headers(): HttpHeaders {
@@ -82,6 +83,14 @@ export class EspaceAgentServiceExamen implements OnInit {
 
   ngOnInit(): void {
     this.notif.charger();
+    this.http.get<any[]>(`${this.apiUrl}/matieres`, { headers: this.headers }).subscribe({
+      next: (data) => this.matieres.set(Array.isArray(data) ? data : []),
+      error: () => { }
+    });
+    this.http.get<any[]>(`${this.apiUrl}/classes`, { headers: this.headers }).subscribe({
+      next: (data) => this.classes.set(Array.isArray(data) ? data : []),
+      error: () => { }
+    });
     this.http.get<any[]>(`${this.apiUrl}/notes/toutes`, { headers: this.headers }).subscribe({
       next: (data) => {
         this.toutesLesNotes.set(Array.isArray(data) ? data : []);
@@ -101,5 +110,34 @@ export class EspaceAgentServiceExamen implements OnInit {
       const s = n.semestre?.libelle ?? n.evaluation?.semestre?.libelle;
       return s === this.semestreSelectionne() ? { ...n, _delibere: true } : n;
     }));
+  }
+
+  protected validerResultats(): void {
+    this.http.post(`${this.apiUrl}/deliberations/valider`, { semestre: this.semestreSelectionne() }, { headers: this.headers }).subscribe();
+  }
+
+  protected genererBulletins(): void {
+    this.http.post(`${this.apiUrl}/bulletins`, { semestre: this.semestreSelectionne() }, { headers: this.headers }).subscribe();
+  }
+
+  protected consulterSituationFinanciere(): void {
+    this.http.get(`${this.apiUrl}/situations-financieres`, { headers: this.headers }).subscribe();
+  }
+  protected programmerExamen(): void {
+    this.afficherFormulaireExamen.set(true);
+  }
+
+  protected soumettreExamen(): void {
+  this.http.post(`${this.apiUrl}/evaluations`, this.examenForm, { headers: this.headers }).subscribe({
+    next: () => {
+      this.afficherFormulaireExamen.set(false);
+      this.examenForm = { typeEvaluation: '', dateEvaluation: '', noteMax: null, noteMin: null, coefficient: null, matiere_id: null, classe_id: null };
+    },
+    error: (e) => console.error(e)
+  });
+}
+
+  protected validerSemestre(): void {
+    this.http.post(`${this.apiUrl}/deliberations/valider`, { semestre: this.semestreSelectionne(), valider_semestre: true }, { headers: this.headers }).subscribe();
   }
 }
