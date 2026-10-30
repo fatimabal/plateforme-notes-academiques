@@ -20,7 +20,7 @@ export class EspaceAgentServiceExamen implements OnInit {
   protected matieres = signal<any[]>([]);
   protected classes = signal<any[]>([]);
   private readonly toutesLesNotes = signal<any[]>([]);
-
+protected readonly nomService = 'Service des Examens';
   private get headers(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
   }

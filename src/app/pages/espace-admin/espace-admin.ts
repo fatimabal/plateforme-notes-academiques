@@ -2,59 +2,82 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NotificationService } from '../../core/notification.service';
 import { RouterLink } from '@angular/router';
-import { AdminData } from '../../core/admin-data';
-import { CompteUtilisateur } from '../../core/models/admin.model';
-
 @Component({
   selector: 'app-espace-admin',
+  standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './espace-admin.html',
-  styleUrl: './espace-admin.scss',
+styleUrl: './espace-admin.scss',
 })
 export class EspaceAdmin implements OnInit {
-  protected readonly data = inject(AdminData);
   private readonly http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:8000/api';
+  protected readonly notif = inject(NotificationService);
 
-  protected readonly roles = this.data.roles;
-  protected readonly recherche = signal('');
-  protected readonly roleFiltre = signal('Tous les rôles');
+  protected readonly nomActeur = `${localStorage.getItem('prenom') ?? ''} ${localStorage.getItem('nom') ?? ''}`.trim() || 'Administrateur';
+
+  // ── Comptes 
+  private readonly comptesApi = signal<any[]>([]);
+  protected readonly comptes = this.comptesApi; // alias pour le HTML (data.comptes())
+
+  protected readonly roles = [
+    'admin',
+    'enseignant',
+    'etudiant',
+    'scolarite',
+    'chef_departement',
+    'parent',
+    'agent_service_examen',
+  ];
+
+  protected recherche = '';
+  protected readonly roleFiltre = signal<string>('Tous les rôles');
 
   protected readonly comptesFiltres = computed(() => {
-    const texte = this.recherche().toLowerCase().trim();
-    const role = this.roleFiltre();
-    return this.data.comptes().filter((c) => {
-      const matchRole = role === 'Tous les rôles' || c.role === role;
-      const matchTexte = !texte || c.nom.toLowerCase().includes(texte) || c.email.toLowerCase().includes(texte);
-      return matchRole && matchTexte;
+    const q = this.recherche.toLowerCase();
+    const r = this.roleFiltre();
+    return this.comptesApi().filter(c => {
+      const nomOk = !q || (c.nom + ' ' + c.prenom + ' ' + c.email).toLowerCase().includes(q);
+      const roleOk = r === 'Tous les rôles' || c.role === r;
+      return nomOk && roleOk;
     });
   });
 
   protected readonly repartitionRoles = computed(() => {
-    const comptage = new Map<string, number>();
-    for (const c of this.data.comptes()) {
-      comptage.set(c.role, (comptage.get(c.role) ?? 0) + 1);
+    const map = new Map<string, number>();
+    for (const c of this.comptesApi()) {
+      map.set(c.role, (map.get(c.role) ?? 0) + 1);
     }
-    return Array.from(comptage.entries()).map(([role, count]) => ({ role, count }));
+    return Array.from(map.entries()).map(([role, count]) => ({ role, count }));
   });
 
-  protected readonly totalNotes = 0;
-  protected readonly totalReclamations = 0;
+  // Statistiques
+  protected totalNotes = 0;
+  protected totalReclamations = 0;
 
-  protected readonly formulaireOuvert = signal(false);
+  // Formulaire création
+  protected formulaireOuvert = signal(false);
   protected nouveauNom = '';
+  protected nouveauPrenom = '';
   protected nouvelEmail = '';
-  protected nouveauRole = this.roles[1];
+  protected nouveauRole = 'etudiant';
   protected nouveauxDetails = '';
 
-  protected readonly compteEnEdition = signal<string | null>(null);
+  // Edition
+  protected readonly compteEnEdition = signal<number | null>(null);
   protected nomEdite = '';
+  protected prenomEdite = '';
   protected roleEdite = '';
   protected detailsEdites = '';
+  protected readonly compteReinitialise = signal<number | null>(null);
 
-  protected readonly compteReinitialise = signal<string | null>(null);
+  //  Journal d'audit 
+  private readonly journalApi = signal<any[]>([]);
+  protected readonly journal = this.journalApi; // alias pour data.journal()
 
+  //  Données de référence 
   protected readonly onglets = ['Départements', 'Filières', 'Classes', 'Semestres', 'UE', 'Modules'];
   protected readonly ongletActif = signal('Départements');
 
@@ -65,196 +88,252 @@ export class EspaceAdmin implements OnInit {
   protected readonly ues = signal<any[]>([]);
   protected readonly modules = signal<any[]>([]);
 
-protected champNom = '';
-protected champDiplome = '';
+  // Champs formulaire référence
+  protected champNom = '';
+  protected champDiplome = '';
   protected champNiveau = '';
+  protected champCredits: number | null = null;
+  protected champCoefficient: number | null = null;
+  protected champVolumeHoraire: number | null = null;
   protected champDepartementId: number | null = null;
   protected champFiliereId: number | null = null;
   protected champSemestreId: number | null = null;
   protected champUeId: number | null = null;
-  protected champCoefficient: number = 1;
-  protected champCredits: number = 1;
-  protected champVolumeHoraire: number = 0;
   protected refEnEdition: any = null;
-  private get headers(): HttpHeaders {
-    return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
-  }
 
+  //  data proxy (pour compatibilité avec le HTML existant) 
+  protected readonly data = {
+    nomActeur: this.nomActeur,
+    comptes: this.comptesApi,
+    journal: this.journalApi,
+  };
+
+  //  Init 
   ngOnInit(): void {
     this.chargerTout();
   }
 
+  private headers(): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  }
+
   private chargerTout(): void {
-    this.charger('departements', this.departements);
-    this.charger('filieres', this.filieres);
-    this.charger('classes', this.classes);
-    this.charger('semestres', this.semestres);
-    this.charger('ues', this.ues);
-    this.charger('matieres', this.modules);
+    this.chargerComptes();
+    this.chargerStats();
+    this.chargerJournal();
+    this.chargerDepartements();
+    this.chargerFilieres();
+    this.chargerClasses();
+    this.chargerSemestres();
+    this.chargerUes();
+    this.chargerModules();
   }
 
-  private charger(endpoint: string, cible: ReturnType<typeof signal<any[]>>): void {
-    this.http.get<any[]>(`${this.apiUrl}/${endpoint}`, { headers: this.headers }).subscribe({
-      next: (data) => cible.set(Array.isArray(data) ? data : []),
-      error: () => cible.set([])
+  private chargerComptes(): void {
+  this.http.get<any>(`${this.apiUrl}/utilisateurs`, { headers: this.headers() })
+    .subscribe({ 
+      next: (data) => {
+        // gère les deux formats : tableau direct ou { users: [...] }
+        const liste = Array.isArray(data) ? data : (data.users ?? data.data ?? []);
+        this.comptesApi.set(liste);
+      }, 
+      error: () => {} 
     });
-  }
-
-  private chargerEndpoint(onglet: string): void {
-    if (onglet === 'Départements') this.charger('departements', this.departements);
-    else if (onglet === 'Filières') this.charger('filieres', this.filieres);
-    else if (onglet === 'Classes') this.charger('classes', this.classes);
-    else if (onglet === 'Semestres') this.charger('semestres', this.semestres);
-    else if (onglet === 'UE') this.charger('ues', this.ues);
-    else if (onglet === 'Modules') this.charger('matieres', this.modules);
-  }
-protected ajouterRef(): void {
-  const onglet = this.ongletActif();
-  let endpoint = '';
-  let body: any = {};
-
-  if (onglet === 'Départements') {
-    endpoint = 'departements';
-    body = { nom: this.champNom };
-  } else if (onglet === 'Filières') {
-    endpoint = 'filieres';
-    body = { nom: this.champNom, diplome: this.champDiplome, departement_id: Number(this.champDepartementId) };
-  } else if (onglet === 'Classes') {
-    endpoint = 'classes';
-    body = { nomClasse: this.champNom, niveau: this.champNiveau, filiere_id: Number(this.champFiliereId) };
-  } else if (onglet === 'Semestres') {
-    endpoint = 'semestres';
-    body = { libelle: this.champNom };
-  } else if (onglet === 'UE') {
-    endpoint = 'ues';
-    body = { libelle: this.champNom, credits: Number(this.champCredits), semestre_id: Number(this.champSemestreId) };
-  } else if (onglet === 'Modules') {
-    endpoint = 'matieres';
-    body = { libelle: this.champNom, coefficient: this.champCoefficient, credits: this.champCredits, volumeHoraire: this.champVolumeHoraire, ue_id: Number(this.champUeId) };
-  }
-
-  const requete = this.refEnEdition
-    ? this.http.put<any>(`${this.apiUrl}/${endpoint}/${this.refEnEdition.id}`, body, { headers: this.headers })
-    : this.http.post<any>(`${this.apiUrl}/${endpoint}`, body, { headers: this.headers });
-
-  requete.subscribe({
-    next: () => {
-      this.champNom = '';
-      this.champDiplome = '';
-      this.champNiveau = '';
-      this.champDepartementId = null;
-      this.champFiliereId = null;
-      this.champSemestreId = null;
-      this.champUeId = null;
-      this.champVolumeHoraire = 0;
-      this.refEnEdition = null;
-      this.chargerEndpoint(onglet);
-    },
-    error: (err) => console.error('ERREUR AJOUT:', err)
-  });
 }
 
-protected modifierRef(item: any): void {
-  const onglet = this.ongletActif();
-  this.refEnEdition = item;
-  if (onglet === 'Départements') {
-    this.champNom = item.nom;
-  } else if (onglet === 'Filières') {
-    this.champNom = item.nom;
-    this.champDiplome = item.diplome ?? '';
-    this.champDepartementId = item.departement_id;
-  } else if (onglet === 'Classes') {
-    this.champNom = item.nomClasse;
-    this.champNiveau = item.niveau;
-    this.champFiliereId = item.filiere_id;
-  } else if (onglet === 'Semestres') {
-    this.champNom = item.libelle;
-  } else if (onglet === 'UE') {
-    this.champNom = item.libelle;
-    this.champCredits = item.credits;
-    this.champSemestreId = item.semestre_id;
-  } else if (onglet === 'Modules') {
-    this.champNom = item.libelle;
-    this.champCoefficient = item.coefficient;
-    this.champCredits = item.credits;
-    this.champVolumeHoraire = item.volumeHoraire;
-    this.champUeId = item.ue_id;
-  }
-}
-
-protected annulerModif(): void {
-  this.refEnEdition = null;
-  this.champNom = '';
-  this.champDiplome = '';
-  this.champNiveau = '';
-  this.champDepartementId = null;
-  this.champFiliereId = null;
-  this.champSemestreId = null;
-  this.champUeId = null;
-  this.champVolumeHoraire = 0;
-}
-   
-  protected supprimerRef(endpoint: string, id: number): void {
-    if (!confirm('Supprimer cet élément ?')) return;
-    const onglet = this.ongletActif();
-    this.http.delete(`${this.apiUrl}/${endpoint}/${id}`, { headers: this.headers }).subscribe({
-      next: () => this.chargerEndpoint(onglet),
-      error: () => {}
-    });
+  private chargerStats(): void {
+    this.http.get<any>(`${this.apiUrl}/notes/toutes`, { headers: this.headers() })
+      .subscribe({ next: (data) => this.totalNotes = Array.isArray(data) ? data.length : (data?.total ?? 0), error: () => { } });
+    this.http.get<any[]>(`${this.apiUrl}/reclamations`, { headers: this.headers() })
+      .subscribe({ next: (data) => this.totalReclamations = data.length, error: () => { } });
   }
 
+  private chargerJournal(): void {
+    this.http.get<any[]>(`${this.apiUrl}/journal`, { headers: this.headers() })
+      .subscribe({ next: (data) => this.journalApi.set(data), error: () => { } });
+  }
+
+  private chargerDepartements(): void {
+    this.http.get<any[]>(`${this.apiUrl}/departements`, { headers: this.headers() })
+      .subscribe({ next: (d) => this.departements.set(d), error: () => { } });
+  }
+
+  private chargerFilieres(): void {
+    this.http.get<any[]>(`${this.apiUrl}/filieres`, { headers: this.headers() })
+      .subscribe({ next: (d) => this.filieres.set(d), error: () => { } });
+  }
+
+  private chargerClasses(): void {
+    this.http.get<any[]>(`${this.apiUrl}/classes`, { headers: this.headers() })
+      .subscribe({ next: (d) => this.classes.set(d), error: () => { } });
+  }
+
+  private chargerSemestres(): void {
+    this.http.get<any[]>(`${this.apiUrl}/semestres`, { headers: this.headers() })
+      .subscribe({ next: (d) => this.semestres.set(d), error: () => { } });
+  }
+
+  private chargerUes(): void {
+    this.http.get<any[]>(`${this.apiUrl}/ues`, { headers: this.headers() })
+      .subscribe({ next: (d) => this.ues.set(d), error: () => { } });
+  }
+
+  private chargerModules(): void {
+    this.http.get<any[]>(`${this.apiUrl}/matieres`, { headers: this.headers() })
+      .subscribe({ next: (d) => this.modules.set(d), error: () => { } });
+  }
+
+  //  Gestion comptes 
   protected basculerFormulaire(): void {
-    this.formulaireOuvert.update((v) => !v);
+    this.formulaireOuvert.update(v => !v);
+    this.nouveauNom = '';
+    this.nouveauPrenom = '';
+    this.nouvelEmail = '';
+    this.nouveauRole = 'etudiant';
+    this.nouveauxDetails = '';
   }
 
   protected creerCompte(): void {
-    if (!this.nouveauNom.trim() || !this.nouvelEmail.trim()) return;
-    this.data.creerCompte({
-      nom: this.nouveauNom.trim(),
-      email: this.nouvelEmail.trim(),
+    const body = {
+      nom: this.nouveauNom,
+      prenom: this.nouveauPrenom,
+      email: this.nouvelEmail,
+      password: 'Password123!',
+      password_confirmation: 'Password123!',
       role: this.nouveauRole,
-      details: this.nouveauxDetails.trim() || '—',
-    });
-    this.nouveauNom = '';
-    this.nouvelEmail = '';
-    this.nouveauxDetails = '';
-    this.formulaireOuvert.set(false);
+    };
+    this.http.post(`${this.apiUrl}/register`, body, { headers: this.headers() })
+      .subscribe({
+        next: () => { this.basculerFormulaire(); this.chargerComptes(); },
+        error: (e) => alert('Erreur : ' + JSON.stringify(e.error?.errors ?? e.error?.message ?? e.message)),
+      });
   }
 
-  protected ouvrirEdition(compte: CompteUtilisateur): void {
-    this.compteEnEdition.set(compte.id);
-    this.nomEdite = compte.nom;
-    this.roleEdite = compte.role;
-    this.detailsEdites = compte.details;
+  protected ouvrirEdition(c: any): void {
+    this.compteEnEdition.set(c.id);
+    this.nomEdite = c.nom ?? '';
+    this.prenomEdite = c.prenom ?? '';
+    this.roleEdite = c.role ?? '';
+    this.detailsEdites = c.details ?? '';
   }
 
-  protected annulerEdition(): void {
+  protected enregistrerEdition(c: any): void {
+    const body = { nom: this.nomEdite, prenom: this.prenomEdite, role: this.roleEdite };
+    this.http.put(`${this.apiUrl}/utilisateurs/${c.id}`, body, { headers: this.headers() })
+      .subscribe({
+        next: () => { this.compteEnEdition.set(null); this.chargerComptes(); },
+        error: () => { },
+      });
+  }
+
+  protected annulerEditionCompte(): void {
     this.compteEnEdition.set(null);
   }
 
-  protected enregistrerEdition(id: string): void {
-    this.data.modifierCompte(id, this.nomEdite, this.roleEdite, this.detailsEdites);
-    this.compteEnEdition.set(null);
+  protected supprimerCompte(c: any): void {
+    if (!confirm(`Supprimer ${c.nom} ${c.prenom ?? ''} ?`)) return;
+    this.http.delete(`${this.apiUrl}/utilisateurs/${c.id}`, { headers: this.headers() })
+      .subscribe({ next: () => this.chargerComptes(), error: () => { } });
   }
 
-  protected supprimerCompte(compte: CompteUtilisateur): void {
-    if (!compte.peutSupprimer) return;
-    if (!confirm(`Supprimer le compte de ${compte.nom} ?`)) return;
-    this.data.supprimerCompte(compte.id);
+  protected reinitialiserMotDePasse(c: any): void {
+    this.http.post(`${this.apiUrl}/utilisateurs/${c.id}/reinitialiser-mot-de-passe`, {}, { headers: this.headers() })
+      .subscribe({
+        next: () => {
+          this.compteReinitialise.set(c.id);
+          setTimeout(() => this.compteReinitialise.set(null), 3000);
+        },
+        error: () => { },
+      });
   }
 
-  protected reinitialiserMotDePasse(compte: CompteUtilisateur): void {
-    this.data.reinitialiserMotDePasse(compte.id);
-    this.compteReinitialise.set(compte.id);
-    setTimeout(() => {
-      if (this.compteReinitialise() === compte.id) {
-        this.compteReinitialise.set(null);
-      }
-    }, 2000);
-  }
-
+  //  Journal 
   protected purgerJournal(): void {
-    if (!confirm('Purger tout le journal ?')) return;
-    this.data.purgerJournal();
+    if (!confirm('Purger tout le journal d\'audit ?')) return;
+    this.http.delete(`${this.apiUrl}/journal`, { headers: this.headers() })
+      .subscribe({ next: () => this.journalApi.set([]), error: () => { } });
+  }
+
+  //  Données de référence 
+  protected ajouterRef(): void {
+    const onglet = this.ongletActif();
+    let url = '';
+    let body: any = {};
+
+    if (onglet === 'Départements') {
+      url = `${this.apiUrl}/departements`;
+      body = { nom: this.champNom };
+    } else if (onglet === 'Filières') {
+      url = `${this.apiUrl}/filieres`;
+      body = { nom: this.champNom, diplome: this.champDiplome, departement_id: this.champDepartementId };
+    } else if (onglet === 'Classes') {
+      url = `${this.apiUrl}/classes`;
+      body = { nomClasse: this.champNom, niveau: this.champNiveau, filiere_id: this.champFiliereId };
+    } else if (onglet === 'Semestres') {
+      url = `${this.apiUrl}/semestres`;
+      body = { libelle: this.champNom };
+    } else if (onglet === 'UE') {
+      url = `${this.apiUrl}/ues`;
+      body = { libelle: this.champNom, credits: this.champCredits, semestre_id: this.champSemestreId };
+    } else if (onglet === 'Modules') {
+      url = `${this.apiUrl}/matieres`;
+      body = { libelle: this.champNom, coefficient: this.champCoefficient, credits: this.champCredits, volumeHoraire: this.champVolumeHoraire, ue_id: this.champUeId };
+    }
+
+    if (this.refEnEdition) {
+      this.http.put(`${url}/${this.refEnEdition.id}`, body, { headers: this.headers() })
+        .subscribe({ next: () => { this.annulerModif(); this.rechargerRef(); }, error: () => { } });
+    } else {
+      this.http.post(url, body, { headers: this.headers() })
+        .subscribe({ next: () => { this.reinitialiserChamps(); this.rechargerRef(); }, error: () => { } });
+    }
+  }
+
+  protected modifierRef(item: any): void {
+    this.refEnEdition = item;
+    this.champNom = item.nom ?? item.libelle ?? item.nomClasse ?? '';
+    this.champDiplome = item.diplome ?? '';
+    this.champNiveau = item.niveau ?? '';
+    this.champCredits = item.credits ?? null;
+    this.champCoefficient = item.coefficient ?? null;
+    this.champVolumeHoraire = item.volumeHoraire ?? null;
+    this.champDepartementId = item.departement_id ?? null;
+    this.champFiliereId = item.filiere_id ?? null;
+    this.champSemestreId = item.semestre_id ?? null;
+    this.champUeId = item.ue_id ?? null;
+  }
+
+  protected annulerModif(): void {
+    this.refEnEdition = null;
+    this.reinitialiserChamps();
+  }
+
+  protected supprimerRef(type: string, id: number): void {
+    if (!confirm('Supprimer cet élément ?')) return;
+    this.http.delete(`${this.apiUrl}/${type}/${id}`, { headers: this.headers() })
+      .subscribe({ next: () => this.rechargerRef(), error: () => { } });
+  }
+
+  private reinitialiserChamps(): void {
+    this.champNom = '';
+    this.champDiplome = '';
+    this.champNiveau = '';
+    this.champCredits = null;
+    this.champCoefficient = null;
+    this.champVolumeHoraire = null;
+    this.champDepartementId = null;
+    this.champFiliereId = null;
+    this.champSemestreId = null;
+    this.champUeId = null;
+  }
+
+  private rechargerRef(): void {
+    const onglet = this.ongletActif();
+    if (onglet === 'Départements') this.chargerDepartements();
+    else if (onglet === 'Filières') { this.chargerFilieres(); this.chargerDepartements(); }
+    else if (onglet === 'Classes') { this.chargerClasses(); this.chargerFilieres(); }
+    else if (onglet === 'Semestres') this.chargerSemestres();
+    else if (onglet === 'UE') { this.chargerUes(); this.chargerSemestres(); }
+    else if (onglet === 'Modules') { this.chargerModules(); this.chargerUes(); }
   }
 }

@@ -20,7 +20,7 @@ export const routes: Routes = [
   { path: 'espace-agent-service-examen', component: EspaceAgentServiceExamen, canActivate: [authGuard] },
   { path: 'espace-chef-departement', component: EspaceChefDepartement, canActivate: [authGuard] },
   { path: 'espace-admin', component: EspaceAdmin, canActivate: [authGuard] },
+  { path: 'espace-scolarite', component: EspaceScolarite, canActivate: [authGuard] },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },
-  { path: 'espace-scolarite', component: EspaceScolarite, canActivate: [authGuard] },
 ];

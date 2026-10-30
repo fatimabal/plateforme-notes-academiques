@@ -1,0 +1,423 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  font-family: var(--font-ui);
+}
+
+.entete-page {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.marque-entete {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.logo-entete {
+  height: 2.5rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.titre-entete {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #101828;
+}
+
+.soustitre-entete {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #667085;
+}
+
+.utilisateur-entete {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.identite-utilisateur {
+  text-align: right;
+}
+
+.nom-utilisateur {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #101828;
+}
+
+.role-utilisateur {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #667085;
+}
+
+.bouton-reset {
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  color: #344054;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.bouton-reset:hover {
+  background: #f9fafb;
+}
+
+.bouton-deconnexion {
+  border: none;
+  background: #101828;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.bouton-deconnexion:hover {
+  background: #1d2939;
+}
+
+.contenu {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.titre-page {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #101828;
+  margin: 0 0 1.5rem;
+}
+
+/* ---------- Stats ---------- */
+.grille-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 860px) {
+  .grille-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.carte-stat {
+  background: #fff;
+  border: 1px solid #eaecf0;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+}
+
+.label-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #667085;
+  margin: 0 0 0.6rem;
+}
+
+.icone-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 8px;
+  background: #eef4ff;
+  font-size: 0.85rem;
+}
+
+.valeur-stat {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #101828;
+  margin: 0;
+}
+
+/* ---------- Pastilles de roles ---------- */
+.ligne-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.pastille-role {
+  background: #fff;
+  border: 1px solid #eaecf0;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+  color: #344054;
+}
+
+/* ---------- Cartes generales ---------- */
+.carte {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eaecf0;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.titre-carte {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #101828;
+  margin: 0 0 0.3rem;
+}
+
+.description-carte {
+  font-size: 0.85rem;
+  color: #667085;
+  margin: 0;
+}
+
+/* ---------- Gestion des comptes : entete + controles ---------- */
+.entete-gestion-comptes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.controles-gestion-comptes {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.champ-recherche {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  min-width: 12rem;
+}
+
+.champ-filtre-role {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.champ-recherche:focus,
+.champ-filtre-role:focus {
+  outline: none;
+  border-color: #1c5cff;
+  box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
+}
+
+.bouton-principal {
+  border: none;
+  background: #1c5cff;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bouton-principal:hover {
+  background: #1547c9;
+}
+
+.bouton-annuler {
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  color: #344054;
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bouton-annuler:hover {
+  background: #f9fafb;
+}
+
+/* ---------- Formulaire nouveau compte ---------- */
+.formulaire-nouveau-compte {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .formulaire-nouveau-compte {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formulaire-nouveau-compte .champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formulaire-nouveau-compte label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #344054;
+}
+
+.formulaire-nouveau-compte input,
+.formulaire-nouveau-compte select {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+.formulaire-nouveau-compte input:focus,
+.formulaire-nouveau-compte select:focus {
+  outline: none;
+  border-color: #1c5cff;
+  box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
+}
+
+.actions-formulaire {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* ---------- Tableau des comptes ---------- */
+.table-comptes,
+.table-audit {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-comptes th,
+.table-audit th {
+  text-align: left;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #667085;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.table-comptes td,
+.table-audit td {
+  padding: 0.8rem 0.5rem;
+  font-size: 0.88rem;
+  color: #101828;
+  border-bottom: 1px solid #f2f4f7;
+}
+
+.nom-fort {
+  font-weight: 600;
+}
+
+.details-compte {
+  color: #667085;
+}
+
+.badge-role {
+  background: #eef4ff;
+  color: #1c5cff;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.colonne-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.bouton-icone {
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-left: 0.3rem;
+}
+
+.bouton-icone:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.bouton-icone:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.bouton-icone-danger {
+  color: #d92d20;
+}
+
+.statut-reinitialise {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #067647;
+  margin-left: 0.4rem;
+}
+
+.input-edition {
+  width: 100%;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+}
+
+.input-edition:focus {
+  outline: none;
+  border-color: #1c5cff;
+  box-shadow: 0 0 0 3px rgba(28, 92, 255, 0.15);
+}
+
+/* ---------- Journal d'audit ---------- */
+.role-acteur {
+  color: #98a2b3;
+  font-size: 0.82rem;
+}

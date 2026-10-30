@@ -45,44 +45,43 @@ export class Login {
         // Sauvegarder le token
         localStorage.setItem('token', session.token);
         localStorage.setItem('role', session.user.role);
+        localStorage.setItem('nom', session.nom);        // ← ajouter
+        localStorage.setItem('prenom', session.prenom);  // ← ajouter
         // Rediriger selon le rôle
         this.redirectByRole(session.user.role);
       },
-      error: (err: Error) => {
-        this.isSubmitting.set(false);
-        this.errorMessage.set(err.message);
-      },
     });
-    
+
   }
   private redirectByRole(role: string): void {
-    switch(role) {
-        case 'etudiant':
-            this.router.navigate(['/espace-etudiant']);
-            break;
-        case 'enseignant':
-            this.router.navigate(['/espace-enseignant']);
-            break;
-        case 'scolarite':
-            this.router.navigate(['/espace-scolarite']);
-            break;
-        case 'agent_service_examen':
-            this.router.navigate(['/espace-agent-service-examen']);
-            break;
-        case 'parent':
-            this.router.navigate(['/espace-parent']);
-            break;
-        case 'comptable':
-            this.router.navigate(['/espace-comptabilite']);
-            break;
-        case 'chef_departement':
-            this.router.navigate(['/espace-chef-departement']);
-            break;
-        case 'admin':
-            this.router.navigate(['/espace-admin']);
-            break;
-        default:
-            this.router.navigate(['/login']);
+    switch (role) {
+      case 'etudiant':
+        this.router.navigate(['/espace-etudiant']);
+        break;
+      case 'enseignant':
+        this.router.navigate(['/espace-enseignant']);
+        break;
+      case 'scolarite':
+        this.router.navigate(['/espace-scolarite']);
+        break;
+      case 'agent_service_examen':
+        this.router.navigate(['/espace-agent-service-examen']);
+        break;
+      case 'parent':
+        this.router.navigate(['/espace-parent']);
+        break;
+      case 'comptable':
+        this.router.navigate(['/espace-comptabilite']);
+        break;
+      case 'chef_departement':
+        this.router.navigate(['/espace-chef-departement']);
+        break;
+      case 'admin':
+        this.router.navigate(['/espace-admin']);
+        break;
+      default:
+        this.router.navigate(['/login']);
     }
-}
+  }
+
 }
