@@ -269,3 +269,43 @@
 .bouton-valider:hover {
   background: #1547c9;
 }
+.formulaire-nouveau-compte {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 200px;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+  }
+
+  input, select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    outline: none;
+
+    &:focus {
+      border-color: #1a56db;
+    }
+  }
+}
+
+.actions-formulaire {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}

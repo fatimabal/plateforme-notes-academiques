@@ -18,9 +18,19 @@ export class EspaceEtudiant implements OnInit {
   protected afficherNotifs = signal(false);
 
   // Profil étudiant
+  protected readonly matricule = signal<string>('—');
+  protected readonly dateNaissance = signal<string>('—');
+  protected readonly lieuNaissance = signal<string>('—');
+  protected readonly filiere = signal<string>('—');
+  protected readonly ongletActif = signal<'notes' | 'profil'>('notes');
   protected readonly nomEtudiant = signal<string>('');
   protected readonly classe = signal<string>('—');
   protected readonly semestreSelectionneCode = signal<string | null>(null);
+
+  // champs édition profil
+  protected nomEdite = '';
+  protected prenomEdite = '';
+  protected readonly profilEnEdition = signal(false);
 
   // Notes brutes depuis l'API
   private readonly notesApi = signal<any[]>([]);
@@ -35,7 +45,6 @@ export class EspaceEtudiant implements OnInit {
     return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
   }
 
-  // Liste des semestres pour les boutons
   protected readonly semestres = computed(() => {
     return this.semestresApi().map((s, i) => ({
       id: s.id,
@@ -45,8 +54,7 @@ export class EspaceEtudiant implements OnInit {
     }));
   });
 
-  // Notes du semestre sélectionné, groupées par matière
-protected readonly modulesAffiches = computed(() => {
+  protected readonly modulesAffiches = computed(() => {
     const code = this.semestreSelectionneCode();
     const notes = this.notesApi().filter(n => n.semestre?.libelle === code);
 
@@ -63,8 +71,7 @@ protected readonly modulesAffiches = computed(() => {
         type: n.type ?? n.evaluation?.typeEvaluation ?? '—',
         note: n.valeur,
         coefficient: n.coefficient ?? 1,
-        date: n.dateSaisie ?? '—',
-      }));
+        date: n.dateSaisie ?? n.evaluation?.dateEvaluation ?? '—',      }));
       const total = evaluations.reduce((s, e) => s + e.note * e.coefficient, 0);
       const totalCoef = evaluations.reduce((s, e) => s + e.coefficient, 0);
       const moyenne = totalCoef > 0 ? Math.round((total / totalCoef) * 10) / 10 : 0;
@@ -72,9 +79,8 @@ protected readonly modulesAffiches = computed(() => {
     });
   });
 
-  // Moyenne globale du semestre
   protected readonly moyenneSemestre = computed(() => {
-const mods = this.modulesAffiches();
+    const mods = this.modulesAffiches();
     if (mods.length === 0) return null;
     const total = mods.reduce((s, m) => s + m.moyenne, 0);
     return Math.round((total / mods.length) * 10) / 10;
@@ -88,28 +94,37 @@ const mods = this.modulesAffiches();
     const nom = localStorage.getItem('nom') ?? '';
     this.nomEtudiant.set(`${prenom} ${nom}`.trim() || 'Étudiant');
 
+    // Charger le profil (matricule, classe, infos personnelles)
+    this.http.get<any>(`${this.apiUrl}/profile`, { headers: this.headers }).subscribe({
+      next: (data) => {
+        this.matricule.set(data.etudiant?.matricule ?? '—');
+        this.dateNaissance.set(data.etudiant?.dateNaissance ?? '—');
+        this.lieuNaissance.set(data.etudiant?.lieuNaissance ?? '—');
+        this.filiere.set(data.etudiant?.filiere ?? '—');
+        this.classe.set(data.etudiant?.classe ?? '—');
+        this.nomEdite = data.nom ?? '';
+        this.prenomEdite = data.prenom ?? '';
+      },
+      error: () => {}
+    });
+
     // Charger les semestres
     this.http.get<any[]>(`${this.apiUrl}/semestres`, { headers: this.headers }).subscribe({
       next: (data) => {
         this.semestresApi.set(Array.isArray(data) ? data : []);
         const sems = this.semestres();
         if (sems.length > 0) {
-          const actuel = sems[sems.length - 1];
-          this.semestreSelectionneCode.set(actuel.code);
+          this.semestreSelectionneCode.set(sems[sems.length - 1].code);
         }
       },
       error: () => {}
     });
 
-    // Charger les notes de l'étudiant
+    // Charger les notes
     this.http.get<any>(`${this.apiUrl}/notes`, { headers: this.headers }).subscribe({
       next: (data) => {
         const notes = Array.isArray(data) ? data : (data?.notes ?? []);
         this.notesApi.set(notes);
-        // Classe depuis la première note
-        const premiere = notes[0];
-        const cls = premiere?.etudiant?.inscription?.[0]?.classe?.nomClasse ?? '—';
-        this.classe.set(cls);
       },
       error: () => this.notesApi.set([])
     });
@@ -136,7 +151,6 @@ const mods = this.modulesAffiches();
   protected envoyerReclamation(matiere: string, type: string): void {
     if (!this.motifReclamation.trim()) return;
 
-    // Trouver l'id de la note correspondante
     const code = this.semestreSelectionneCode();
     const note = this.notesApi().find(n =>
       n.semestre?.libelle === code &&
@@ -170,5 +184,31 @@ const mods = this.modulesAffiches();
     const sems = this.semestres();
     if (sems.length > 0) this.semestreSelectionneCode.set(sems[sems.length - 1].code);
     this.reclamationOuverte.set(null);
+  }
+
+  protected enregistrerProfil(): void {
+    this.http.put(`${this.apiUrl}/profile`, {
+      nom: this.nomEdite,
+      prenom: this.prenomEdite,
+    }, { headers: this.headers }).subscribe({
+      next: () => {
+        this.nomEtudiant.set(`${this.prenomEdite} ${this.nomEdite}`.trim());
+        localStorage.setItem('nom', this.nomEdite);
+        localStorage.setItem('prenom', this.prenomEdite);
+        this.profilEnEdition.set(false);
+        // Recharger le profil pour mettre à jour les infos
+        this.http.get<any>(`${this.apiUrl}/profile`, { headers: this.headers }).subscribe({
+          next: (data) => {
+            this.matricule.set(data.etudiant?.matricule ?? '—');
+            this.dateNaissance.set(data.etudiant?.dateNaissance ?? '—');
+            this.lieuNaissance.set(data.etudiant?.lieuNaissance ?? '—');
+            this.filiere.set(data.etudiant?.filiere ?? '—');
+            this.classe.set(data.etudiant?.classe ?? '—');
+          },
+          error: () => {}
+        });
+      },
+      error: () => {}
+    });
   }
 }

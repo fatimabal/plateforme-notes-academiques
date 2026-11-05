@@ -1,74 +1,59 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ParentData } from '../../core/parent-data';
-import { Commentaire, DossierEnfant, Enfant } from '../../core/models/parent.model';
 
 @Component({
   selector: 'app-espace-parent',
+  standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './espace-parent.html',
-  styleUrl: './espace-parent.scss',
-})
-export class EspaceParent {
-  private readonly parentData = inject(ParentData);
+styleUrl: '../espace-scolarite/espace-scolarite.scss',})
+export class EspaceParent implements OnInit {
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = 'http://localhost:8000/api';
 
-  protected readonly nomParent = 'Mme BAL';
+  protected readonly nomParent = `${localStorage.getItem('prenom') ?? ''} ${localStorage.getItem('nom') ?? ''}`.trim() || 'Parent';
 
-  protected readonly enfants = signal<Enfant[]>([]);
-  protected readonly enfantSelectionneId = signal<string | null>(null);
-  protected readonly dossier = signal<DossierEnfant | null>(null);
+  protected readonly notes = signal<any[]>([]);
+  protected readonly bulletins = signal<any[]>([]);
 
-  protected nouveauCommentaire = '';
-  protected readonly commentaires = signal<Commentaire[]>([]);
-
-  protected readonly evolution = computed(() => {
-    const semestres = this.dossier()?.semestres ?? [];
-    if (semestres.length < 2) return null;
-
-    const avantDernier = semestres[semestres.length - 2];
-    const dernier = semestres[semestres.length - 1];
-    const delta = Math.round((dernier.moyenne - avantDernier.moyenne) * 100) / 100;
-
-    return { delta, de: avantDernier.semestre, vers: dernier.semestre };
+  protected readonly moyenneGenerale = computed(() => {
+    const n = this.notes();
+    if (!n.length) return 0;
+    const total = n.reduce((s, note) => s + (note.valeur ?? 0), 0);
+    return Math.round((total / n.length) * 100) / 100;
   });
 
-  constructor() {
-    this.parentData.listerEnfants().subscribe((enfants) => {
-      this.enfants.set(enfants);
-      if (enfants.length > 0) {
-        this.selectionnerEnfant(enfants[0].id);
-      }
-    });
+  ngOnInit(): void {
+    this.chargerNotes();
+    this.chargerBulletins();
   }
 
-  protected selectionnerEnfant(id: string): void {
-    this.enfantSelectionneId.set(id);
-    this.commentaires.set([]);
-    this.parentData.getDossier(id).subscribe((dossier) => {
-      this.dossier.set(dossier);
-    });
+  private headers(): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
   }
 
-  protected largeurBarre(moyenne: number): number {
-    return Math.max(0, Math.min(100, (moyenne / 20) * 100));
+  private chargerNotes(): void {
+    this.http.get<any>(`${this.apiUrl}/notes/enfant`, { headers: this.headers() })
+      .subscribe({
+        next: (d) => {
+          const liste = Array.isArray(d) ? d : (d.data ?? d.notes ?? []);
+          this.notes.set(liste);
+        },
+        error: () => {}
+      });
   }
 
-  protected publierCommentaire(): void {
-    const texte = this.nouveauCommentaire.trim();
-    if (!texte) return;
-
-    this.commentaires.update((liste) => [
-      ...liste,
-      { id: crypto.randomUUID(), texte, date: new Date() },
-    ]);
-    this.nouveauCommentaire = '';
-  }
-
-  protected reinitialiser(): void {
-    if (this.enfants().length > 0) {
-      this.selectionnerEnfant(this.enfants()[0].id);
-    }
+  private chargerBulletins(): void {
+    this.http.get<any>(`${this.apiUrl}/bulletins/enfant`, { headers: this.headers() })
+      .subscribe({
+        next: (d) => {
+          const liste = Array.isArray(d) ? d : (d.data ?? d.bulletins ?? []);
+          this.bulletins.set(liste);
+        },
+        error: () => {}
+      });
   }
 }

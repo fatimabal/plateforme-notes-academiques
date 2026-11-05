@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './espace-admin.html',
-styleUrl: './espace-admin.scss',
+  styleUrl: './espace-admin.scss',
 })
 export class EspaceAdmin implements OnInit {
   private readonly http = inject(HttpClient);
@@ -64,7 +64,12 @@ export class EspaceAdmin implements OnInit {
   protected nouvelEmail = '';
   protected nouveauRole = 'etudiant';
   protected nouveauxDetails = '';
-
+  protected nouveauSpecialite = '';
+  protected nouveauGrade = '';
+  protected nouveauDateNaissance = '';
+  protected nouveauLieuNaissance = '';
+  protected nouveauFiliere = '';
+  protected nouveauTelephone = '';
   // Edition
   protected readonly compteEnEdition = signal<number | null>(null);
   protected nomEdite = '';
@@ -100,7 +105,12 @@ export class EspaceAdmin implements OnInit {
   protected champSemestreId: number | null = null;
   protected champUeId: number | null = null;
   protected refEnEdition: any = null;
-
+  protected nouveauMandat = '';
+  protected nouveauDateDebut = '';
+  protected nouveauDateFin = '';
+  protected nouveauProfession = '';
+  protected nouveauAdresse = '';
+  protected nouveauLienParents = '';
   //  data proxy (pour compatibilité avec le HTML existant) 
   protected readonly data = {
     nomActeur: this.nomActeur,
@@ -108,6 +118,11 @@ export class EspaceAdmin implements OnInit {
     journal: this.journalApi,
   };
 
+  protected detailsUtilisateur = signal<any>(null);
+
+  protected voirDetails(c: any): void {
+    this.detailsUtilisateur.set(c);
+  }
   //  Init 
   ngOnInit(): void {
     this.chargerTout();
@@ -130,57 +145,87 @@ export class EspaceAdmin implements OnInit {
   }
 
   private chargerComptes(): void {
-  this.http.get<any>(`${this.apiUrl}/utilisateurs`, { headers: this.headers() })
-    .subscribe({ 
-      next: (data) => {
-        // gère les deux formats : tableau direct ou { users: [...] }
-        const liste = Array.isArray(data) ? data : (data.users ?? data.data ?? []);
-        this.comptesApi.set(liste);
-      }, 
-      error: () => {} 
-    });
-}
+    this.http.get<any>(`${this.apiUrl}/utilisateurs`, { headers: this.headers() })
+      .subscribe({
+        next: (data) => {
+          // gère les deux formats : tableau direct ou { users: [...] }
+          const liste = Array.isArray(data) ? data : (data.users ?? data.data ?? []);
+          this.comptesApi.set(liste);
+        },
+        error: () => { }
+      });
+  }
 
   private chargerStats(): void {
     this.http.get<any>(`${this.apiUrl}/notes/toutes`, { headers: this.headers() })
-      .subscribe({ next: (data) => this.totalNotes = Array.isArray(data) ? data.length : (data?.total ?? 0), error: () => { } });
+      .subscribe({
+        next: (data) => this.totalNotes = Array.isArray(data) ? data.length : 0,
+        error: () => this.totalNotes = 0
+      });
     this.http.get<any[]>(`${this.apiUrl}/reclamations`, { headers: this.headers() })
-      .subscribe({ next: (data) => this.totalReclamations = data.length, error: () => { } });
+      .subscribe({
+        next: (data) => this.totalReclamations = Array.isArray(data) ? data.length : 0,
+        error: () => this.totalReclamations = 0
+      });
   }
 
   private chargerJournal(): void {
-    this.http.get<any[]>(`${this.apiUrl}/journal`, { headers: this.headers() })
-      .subscribe({ next: (data) => this.journalApi.set(data), error: () => { } });
+    this.http.get<any>(`${this.apiUrl}/journal`, { headers: this.headers() })
+      .subscribe({
+        next: (data) => this.journalApi.set(Array.isArray(data) ? data : (data?.data ?? [])),
+        error: () => this.journalApi.set([])
+      });
   }
 
   private chargerDepartements(): void {
-    this.http.get<any[]>(`${this.apiUrl}/departements`, { headers: this.headers() })
-      .subscribe({ next: (d) => this.departements.set(d), error: () => { } });
+    this.http.get<any>(`${this.apiUrl}/departements`, { headers: this.headers() })
+      .subscribe({
+        next: (d) => {
+          const liste = Array.isArray(d) ? d : (d.data ?? d.departements ?? []);
+          this.departements.set(liste);
+        },
+        error: () => { }
+      });
   }
 
   private chargerFilieres(): void {
-    this.http.get<any[]>(`${this.apiUrl}/filieres`, { headers: this.headers() })
-      .subscribe({ next: (d) => this.filieres.set(d), error: () => { } });
+    this.http.get<any>(`${this.apiUrl}/filieres`, { headers: this.headers() })
+      .subscribe({
+        next: (d) => this.filieres.set(Array.isArray(d) ? d : (d.data ?? d.filieres ?? [])),
+        error: () => { }
+      });
   }
 
   private chargerClasses(): void {
-    this.http.get<any[]>(`${this.apiUrl}/classes`, { headers: this.headers() })
-      .subscribe({ next: (d) => this.classes.set(d), error: () => { } });
+    this.http.get<any>(`${this.apiUrl}/classes`, { headers: this.headers() })
+      .subscribe({
+        next: (d) => this.classes.set(Array.isArray(d) ? d : (d.data ?? d.classes ?? [])),
+        error: () => { }
+      });
   }
 
   private chargerSemestres(): void {
-    this.http.get<any[]>(`${this.apiUrl}/semestres`, { headers: this.headers() })
-      .subscribe({ next: (d) => this.semestres.set(d), error: () => { } });
+    this.http.get<any>(`${this.apiUrl}/semestres`, { headers: this.headers() })
+      .subscribe({
+        next: (d) => this.semestres.set(Array.isArray(d) ? d : (d.data ?? d.semestres ?? [])),
+        error: () => { }
+      });
   }
 
   private chargerUes(): void {
-    this.http.get<any[]>(`${this.apiUrl}/ues`, { headers: this.headers() })
-      .subscribe({ next: (d) => this.ues.set(d), error: () => { } });
+    this.http.get<any>(`${this.apiUrl}/ues`, { headers: this.headers() })
+      .subscribe({
+        next: (d) => this.ues.set(Array.isArray(d) ? d : (d.data ?? d.ues ?? [])),
+        error: () => { }
+      });
   }
 
   private chargerModules(): void {
-    this.http.get<any[]>(`${this.apiUrl}/matieres`, { headers: this.headers() })
-      .subscribe({ next: (d) => this.modules.set(d), error: () => { } });
+    this.http.get<any>(`${this.apiUrl}/matieres`, { headers: this.headers() })
+      .subscribe({
+        next: (d) => this.modules.set(Array.isArray(d) ? d : (d.data ?? d.matieres ?? [])),
+        error: () => { }
+      });
   }
 
   //  Gestion comptes 
@@ -191,16 +236,41 @@ export class EspaceAdmin implements OnInit {
     this.nouvelEmail = '';
     this.nouveauRole = 'etudiant';
     this.nouveauxDetails = '';
+    this.nouveauSpecialite = '';
+    this.nouveauGrade = '';
+    this.nouveauDateNaissance = '';
+    this.nouveauLieuNaissance = '';
+    this.nouveauFiliere = '';
+    this.nouveauMandat = '';
+    this.nouveauDateDebut = '';
+    this.nouveauDateFin = '';
+    this.nouveauProfession = '';
+    this.nouveauAdresse = '';
+    this.nouveauLienParents = '';
+    this.nouveauTelephone = '';
+    this.chargerFilieres();
   }
 
   protected creerCompte(): void {
-    const body = {
+    const body: any = {
       nom: this.nouveauNom,
       prenom: this.nouveauPrenom,
       email: this.nouvelEmail,
       password: 'Password123!',
       password_confirmation: 'Password123!',
       role: this.nouveauRole,
+      specialite: this.nouveauSpecialite,
+      grade: this.nouveauGrade,
+      dateNaissance: this.nouveauDateNaissance,
+      lieuNaissance: this.nouveauLieuNaissance,
+      filiere: this.nouveauFiliere,
+      telephone: this.nouveauTelephone,
+      mandat: this.nouveauMandat,
+      dateDebut: this.nouveauDateDebut,
+      dateFin: this.nouveauDateFin,
+      profession: this.nouveauProfession,
+      adresse: this.nouveauAdresse,
+      lienParents: this.nouveauLienParents,
     };
     this.http.post(`${this.apiUrl}/register`, body, { headers: this.headers() })
       .subscribe({

@@ -21,11 +21,41 @@ export class EspaceEnseignant implements OnInit {
   protected readonly nomEnseignant =
     `${localStorage.getItem('prenom') ?? ''} ${localStorage.getItem('nom') ?? ''}`.trim() || 'Enseignant';
 
+  // Onglets
+  protected readonly ongletActif = signal<'tableau' | 'profil'>('tableau');
+
+  // Profil
+  protected readonly profilNom = signal('');
+  protected readonly profilPrenom = signal('');
+  protected readonly profilEmail = signal('');
+  protected readonly profilRole = signal('');
+  protected readonly profilEnEdition = signal(false);
+  protected nomEdite = '';
+  protected prenomEdite = '';
+
   // Données API
   protected matieres = signal<any[]>([]);
+  protected classes = signal<any[]>([]);
+  protected classeSelectionnee = signal<number | null>(null);
+  protected rechercheEtudiant = '';
   protected etudiants = signal<any[]>([]);
   protected readonly typesEvaluation = ['Devoir', 'Examen', 'TP', 'Projet'];
   protected semestres = signal<any[]>([]);
+
+  protected readonly etudiantsFiltres = computed(() => {
+    const classeId = this.classeSelectionnee();
+    const q = this.rechercheEtudiant.toLowerCase();
+    let liste = this.etudiants();
+    if (classeId) {
+      liste = liste.filter(e => e.classe_id === classeId || e.inscription?.[0]?.classe_id === classeId);
+    }
+    if (q) {
+      liste = liste.filter(e =>
+        (e.user?.nom + ' ' + e.user?.prenom + ' ' + e.matricule).toLowerCase().includes(q)
+      );
+    }
+    return liste;
+  });
 
   // Notes par statut
   private readonly toutesLesNotes = signal<any[]>([]);
@@ -62,6 +92,21 @@ export class EspaceEnseignant implements OnInit {
   ngOnInit(): void {
     this.notif.charger();
     this.chargerDonnees();
+    this.chargerProfil();
+  }
+
+  private chargerProfil(): void {
+    this.http.get<any>(`${this.apiUrl}/profile`, { headers: this.headers }).subscribe({
+      next: (data) => {
+        this.profilNom.set(data.nom ?? '');
+        this.profilPrenom.set(data.prenom ?? '');
+        this.profilEmail.set(data.email ?? '');
+        this.profilRole.set(data.role ?? '');
+        this.nomEdite = data.nom ?? '';
+        this.prenomEdite = data.prenom ?? '';
+      },
+      error: () => {}
+    });
   }
 
   private chargerDonnees(): void {
@@ -70,7 +115,12 @@ export class EspaceEnseignant implements OnInit {
       error: () => {}
     });
 
-    this.http.get<any[]>(`${this.apiUrl}/etudiants`, { headers: this.headers }).subscribe({
+    this.http.get<any[]>(`${this.apiUrl}/classes`, { headers: this.headers }).subscribe({
+      next: (data) => this.classes.set(Array.isArray(data) ? data : []),
+      error: () => {}
+    });
+
+    this.http.get<any[]>(`${this.apiUrl}/etudiants-liste`, { headers: this.headers }).subscribe({
       next: (data) => this.etudiants.set(Array.isArray(data) ? data : []),
       error: () => {}
     });
@@ -153,6 +203,22 @@ export class EspaceEnseignant implements OnInit {
         this.chargerDonnees();
       },
       error: (e) => console.error(e)
+    });
+  }
+
+  protected enregistrerProfil(): void {
+    this.http.put(`${this.apiUrl}/profile`, {
+      nom: this.nomEdite,
+      prenom: this.prenomEdite,
+    }, { headers: this.headers }).subscribe({
+      next: () => {
+        this.profilNom.set(this.nomEdite);
+        this.profilPrenom.set(this.prenomEdite);
+        localStorage.setItem('nom', this.nomEdite);
+        localStorage.setItem('prenom', this.prenomEdite);
+        this.profilEnEdition.set(false);
+      },
+      error: () => {}
     });
   }
 }

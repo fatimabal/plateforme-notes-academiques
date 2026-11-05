@@ -9,10 +9,10 @@
     </div>
     <div class="utilisateur-entete">
       <div class="identite-utilisateur">
-        <p class="nom-utilisateur">{{ nomService }}</p>
+        <p class="nom-utilisateur">{{ nomActeur }}</p>
         <p class="role-utilisateur">Comptabilité</p>
       </div>
-      <button type="button" class="bouton-reset">↻ Reset</button>
+      <button type="button" class="bouton-reset" (click)="reset()">↻ Reset</button>
       <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
     </div>
   </header>
@@ -22,70 +22,90 @@
 
     <div class="grille-stats">
       <div class="carte-stat">
-        <p class="label-stat"><span class="icone-stat">💳</span> Encaissé</p>
-        <p class="valeur-stat">{{ data.totalEncaisse() }} DT</p>
-      </div>
-      <div class="carte-stat">
-        <p class="label-stat"><span class="icone-stat">💳</span> Attendu</p>
-        <p class="valeur-stat">{{ data.totalAttendu() }} DT</p>
-      </div>
-      <div class="carte-stat">
         <p class="label-stat"><span class="icone-stat">✓</span> À jour</p>
-        <p class="valeur-stat">{{ data.nombreAJour() }}</p>
+        <p class="valeur-stat">{{ nbAJour() }}</p>
       </div>
       <div class="carte-stat">
         <p class="label-stat"><span class="icone-stat">⚠</span> Impayés</p>
-        <p class="valeur-stat">{{ data.nombreImpayes() }}</p>
+        <p class="valeur-stat">{{ nbImpayes() }}</p>
+      </div>
+      <div class="carte-stat">
+        <p class="label-stat"><span class="icone-stat">📋</span> Total dossiers</p>
+        <p class="valeur-stat">{{ dossiers().length }}</p>
       </div>
     </div>
 
     <section class="carte">
-      <h2 class="titre-carte">Dossiers étudiants</h2>
-      <p class="description-carte">
-        La situation financière conditionne certaines opérations administratives (retrait de bulletin, inscription).
-      </p>
+      <div class="entete-gestion-comptes">
+        <div>
+          <h2 class="titre-carte">Dossiers étudiants</h2>
+          <p class="description-carte">La situation financière conditionne certaines opérations administratives.</p>
+        </div>
+        <button type="button" class="bouton-principal" (click)="formulaireOuvert.set(!formulaireOuvert())">
+          + Nouveau dossier
+        </button>
+      </div>
+
+      @if (formulaireOuvert()) {
+      <div class="formulaire-nouveau-compte" style="margin-bottom:1.5rem;">
+        <div class="champ">
+          <label>Étudiant</label>
+          <input type="text" [(ngModel)]="rechercheEtudiant" [ngModelOptions]="{standalone:true}"
+            placeholder="Rechercher par nom, prénom ou matricule..." style="margin-bottom:0.4rem;" />
+          <select [(ngModel)]="nouvelEtudiantId" [ngModelOptions]="{standalone:true}" size="4" style="height:auto;">
+            <option [value]="null">-- Choisir --</option>
+            @for (e of etudiantsFiltres(); track e.id) {
+            <option [value]="e.id">{{ e.user?.nom }} {{ e.user?.prenom }} — {{ e.matricule }}</option>
+            }
+          </select>
+        </div>
+        <div class="champ">
+          <label>Date de vérification</label>
+          <input type="date" [(ngModel)]="nouvelleDate" [ngModelOptions]="{standalone:true}" />
+        </div>
+        <div class="champ">
+          <label>Statut</label>
+          <select [(ngModel)]="nouvelEtudiantId" [ngModelOptions]="{standalone:true}">
+            <option [value]="null">-- Choisir --</option>
+            @for (e of etudiants(); track e.id) {
+            <option [value]="e.id">{{ e.user?.nom }} {{ e.user?.prenom }}</option> }
+          </select>
+        </div>
+        <div class="actions-formulaire">
+          <button type="button" class="bouton-principal" (click)="creerDossier()">Créer</button>
+          <button type="button" class="bouton-annuler" (click)="formulaireOuvert.set(false)">Annuler</button>
+        </div>
+      </div>
+      }
 
       <table class="table-dossiers">
         <thead>
           <tr>
             <th>Étudiant</th>
-            <th>Classe</th>
-            <th>Frais</th>
-            <th>Payé</th>
-            <th>Reste</th>
+            <th>Date vérification</th>
             <th>Situation</th>
-            <th>Encaisser</th>
+            <th class="colonne-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
-          @for (d of data.dossiers(); track d.id) {
-            <tr>
-              <td class="nom-etudiant">{{ d.etudiant }}</td>
-              <td>{{ d.classe }}</td>
-              <td>{{ d.frais }} DT</td>
-              <td>{{ d.paye }} DT</td>
-              <td [class.reste-nul]="reste(d) === 0" [class.reste-du]="reste(d) > 0">
-                {{ reste(d) }} DT
-              </td>
-              <td>
-                @if (estAJour(d)) {
-                  <span class="badge-a-jour">À jour</span>
-                } @else {
-                  <span class="badge-solde-du">Solde dû</span>
-                }
-              </td>
-              <td class="colonne-encaisser">
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Montant"
-                  class="input-montant"
-                  [(ngModel)]="montants[d.id]"
-                  [ngModelOptions]="{standalone: true}"
-                />
-                <button type="button" class="bouton-valider" (click)="encaisser(d)">Valider</button>
-              </td>
-            </tr>
+          @for (d of dossiers(); track d.id) {
+          <tr>
+            <td class="nom-etudiant">{{ d.etudiant?.user?.nom }} {{ d.etudiant?.user?.prenom }}</td>
+            <td>{{ d.dateVerification }}</td>
+            <td>
+              @if (d.estAJour) {
+              <span class="badge-a-jour">À jour</span>
+              } @else {
+              <span class="badge-solde-du">Impayé</span>
+              }
+            </td>
+            <td class="colonne-actions">
+              @if (!d.estAJour) {
+              <button type="button" class="bouton-principal" style="font-size:0.8rem;padding:0.3rem 0.7rem;"
+                (click)="regulariser(d)">Régulariser</button>
+              }
+            </td>
+          </tr>
           }
         </tbody>
       </table>
