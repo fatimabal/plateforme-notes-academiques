@@ -109,13 +109,32 @@
             placeholder="Ex: Dakar" />
         </div>
         <div class="champ">
+          <label>Sexe</label>
+          <select [(ngModel)]="nouveauSexe" [ngModelOptions]="{standalone:true}">
+            <option value="">-- Choisir --</option>
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+          </select>
+        </div>
+        <div class="champ">
           <label>Filière</label>
           <select [(ngModel)]="nouveauFiliere" [ngModelOptions]="{standalone:true}">
             <option value="">-- Choisir une filière --</option>
             @for (f of filieres(); track f.id) {
-            <option [value]="f.nom">{{ f.nom }}</option> }
+            <option [value]="f.nom">{{ f.nom }}</option>
+            }
           </select>
         </div>
+        <div class="champ">
+          <label>Classe</label>
+          <select [(ngModel)]="nouveauClasseId" [ngModelOptions]="{standalone:true}">
+            <option value="">-- Choisir une classe --</option>
+            @for (c of classes(); track c.id) {
+            <option [value]="c.id">{{ c.nomClasse }}</option>
+            }
+          </select>
+        </div>
+        }
         }
         @if (nouveauRole === 'parent') {
         <div class="champ">
@@ -197,6 +216,43 @@
         </div>
       </div>
       }
+      @if (roleFiltre() === 'etudiant') {
+      @for (cl of classesEtudiants(); track cl.nom) {
+      <div style="margin-bottom:1.5rem;">
+        <h4 style="padding:0.5rem 1rem;background:#f0f4ff;border-radius:6px;margin-bottom:0.5rem;color:#1a56db;">
+          {{ cl.nom }} <span style="font-weight:normal;font-size:0.85rem;color:#666;">({{ cl.etudiants.length }}
+            étudiant(s))</span>
+        </h4>
+        <table class="table-comptes">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Matricule</th>
+              <th>E-mail</th>
+              <th>Détails</th>
+              <th class="colonne-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of cl.etudiants; track c.id) {
+            <tr>
+              <td class="nom-fort">{{ c.nom }} {{ c.prenom }}</td>
+              <td>{{ c.etudiant?.matricule }}</td>
+              <td>{{ c.email }}</td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-icone" (click)="voirDetails(c)" title="Voir détails">👁️</button>
+              </td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-icone" (click)="ouvrirEdition(c)" title="Modifier">✏️</button>
+                <button type="button" class="bouton-icone" (click)="toggleActif(c)"
+                  [title]="c.actif ? 'Désactiver' : 'Activer'" [style.opacity]="c.actif ? '1' : '0.4'">
+                  {{ c.actif ? '✅' : '🚫' }}
+                </button>
+          </tbody>
+        </table>
+      </div>
+      }
+      } @else {
       <table class="table-comptes">
         <thead>
           <tr>
@@ -236,12 +292,10 @@
             </td>
             <td class="colonne-actions">
               <button type="button" class="bouton-icone" (click)="ouvrirEdition(c)" title="Modifier">✏️</button>
-              @if (compteReinitialise() === c.id) {
-              <span class="statut-reinitialise">✓ Réinitialisé</span>
-              } @else {
-              <button type="button" class="bouton-icone" (click)="reinitialiserMotDePasse(c)"
-                title="Réinitialiser">🔑</button>
-              }
+              <button type="button" class="bouton-icone" (click)="toggleActif(c)"
+                [title]="c.actif ? 'Désactiver' : 'Activer'" [style.opacity]="c.actif ? '1' : '0.4'">
+                {{ c.actif ? '✅' : '🚫' }}
+              </button>
               <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerCompte(c)"
                 title="Supprimer">🗑️</button>
             </td>
@@ -250,6 +304,7 @@
           }
         </tbody>
       </table>
+      }
     </section>
 
     <section class="carte">
@@ -535,6 +590,7 @@
             <th>Libellé</th>
             <th>Coefficient</th>
             <th>UE</th>
+            <th>Enseignants</th>
             <th style="text-align:right;padding-right:1rem;">Actions</th>
           </tr>
         </thead>
@@ -544,7 +600,18 @@
             <td class="nom-fort">{{ m.libelle }}</td>
             <td>{{ m.coefficient }}</td>
             <td>{{ m.ue?.libelle }}</td>
+            <td>
+              @if (m.enseignants && m.enseignants.length > 0) {
+              @for (e of m.enseignants; track e.id) {
+              <span class="badge-etudiant" style="margin:2px;">{{ e.user?.prenom }} {{ e.user?.nom }}</span>
+              }
+              } @else {
+              <span style="color:#aaa;font-size:0.85rem;">Aucun</span>
+              }
+            </td>
             <td class="colonne-actions">
+              <button type="button" class="bouton-icone" (click)="ouvrirAffectation(m)"
+                title="Affecter enseignants">👨‍🏫</button>
               <button type="button" class="bouton-icone" (click)="modifierRef(m)">✏️</button>
               <button type="button" class="bouton-icone bouton-icone-danger"
                 (click)="supprimerRef('matieres', m.id)">🗑️</button>
@@ -588,6 +655,44 @@
       </table>
     </section>
   </main>
+  @if (moduleAffecter) {
+  <div class="overlay-modal" (click)="fermerAffectation()">
+    <div class="modal-details" (click)="$event.stopPropagation()">
+      <h3>Affecter enseignants — {{ moduleAffecter.libelle }}</h3>
+      <div class="champ">
+        <label>Rechercher un enseignant</label>
+        <input type="text" [(ngModel)]="rechercheEnseignant" [ngModelOptions]="{standalone:true}"
+          placeholder="Tapez le nom..." (input)="rechercherEnseignant()" />
+        @if (enseignantsSuggestions.length > 0) {
+        <div class="suggestions-liste">
+          @for (e of enseignantsSuggestions; track e.id) {
+          <div class="suggestion-item" (click)="ajouterEnseignant(e)">
+            {{ e.prenom }} {{ e.nom }}
+          </div>
+          }
+        </div>
+        }
+      </div>
+      @if (enseignantsSelectionnes.length > 0) {
+      <div class="champ">
+        <label>Enseignants sélectionnés</label>
+        <div class="etudiants-selectionnes">
+          @for (e of enseignantsSelectionnes; track e.id) {
+          <span class="badge-etudiant">
+            {{ e.prenom }} {{ e.nom }}
+            <button type="button" (click)="retirerEnseignant(e)">✕</button>
+          </span>
+          }
+        </div>
+      </div>
+      }
+      <div class="actions-formulaire">
+        <button type="button" class="bouton-annuler" (click)="fermerAffectation()">Annuler</button>
+        <button type="button" class="bouton-principal" (click)="sauvegarderAffectation()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+  }
   @if (detailsUtilisateur()) {
   <div class="overlay-modal" (click)="detailsUtilisateur.set(null)">
     <div class="modal-details" (click)="$event.stopPropagation()">

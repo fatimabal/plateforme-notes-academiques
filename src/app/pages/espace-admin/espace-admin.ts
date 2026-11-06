@@ -52,6 +52,20 @@ export class EspaceAdmin implements OnInit {
     }
     return Array.from(map.entries()).map(([role, count]) => ({ role, count }));
   });
+  protected readonly classesEtudiants = computed(() => {
+    const etudiants = this.comptesApi().filter(c => c.role === 'etudiant');
+    const q = this.recherche.toLowerCase();
+    const filtres = !q ? etudiants : etudiants.filter(c =>
+      (c.nom + ' ' + c.prenom + ' ' + c.email + ' ' + (c.etudiant?.matricule ?? '')).toLowerCase().includes(q)
+    );
+    const map = new Map<string, any[]>();
+    for (const e of filtres) {
+      const classe = e.etudiant?.inscription?.[0]?.classe?.nomClasse ?? 'Sans classe';
+      if (!map.has(classe)) map.set(classe, []);
+      map.get(classe)!.push(e);
+    }
+    return Array.from(map.entries()).map(([nom, etudiants]) => ({ nom, etudiants }));
+  });
 
   // Statistiques
   protected totalNotes = 0;
@@ -69,6 +83,8 @@ export class EspaceAdmin implements OnInit {
   protected nouveauDateNaissance = '';
   protected nouveauLieuNaissance = '';
   protected nouveauFiliere = '';
+  protected nouveauSexe = '';
+  protected nouveauClasseId: number | string = '';
   protected nouveauTelephone = '';
   // Edition
   protected readonly compteEnEdition = signal<number | null>(null);
@@ -114,6 +130,12 @@ export class EspaceAdmin implements OnInit {
   protected rechercheEtudiant = '';
   protected etudiantsSuggestions: any[] = [];
   protected etudiantsSelectionnes: any[] = [];
+  // Affectation enseignants aux modules
+  protected moduleAffecter: any = null;
+  protected enseignantsListe: any[] = [];
+  protected rechercheEnseignant = '';
+  protected enseignantsSuggestions: any[] = [];
+  protected enseignantsSelectionnes: any[] = [];
   //  data proxy (pour compatibilité avec le HTML existant) 
   protected readonly data = {
     nomActeur: this.nomActeur,
@@ -244,6 +266,8 @@ export class EspaceAdmin implements OnInit {
     this.nouveauDateNaissance = '';
     this.nouveauLieuNaissance = '';
     this.nouveauFiliere = '';
+    this.nouveauSexe = '';
+    this.nouveauClasseId = '';
     this.nouveauMandat = '';
     this.nouveauDateDebut = '';
     this.nouveauDateFin = '';
@@ -270,6 +294,8 @@ export class EspaceAdmin implements OnInit {
       dateNaissance: this.nouveauDateNaissance,
       lieuNaissance: this.nouveauLieuNaissance,
       filiere: this.nouveauFiliere,
+      sexe: this.nouveauSexe,
+      classeId: this.nouveauClasseId,
       telephone: this.nouveauTelephone,
       mandat: this.nouveauMandat,
       dateDebut: this.nouveauDateDebut,
@@ -319,6 +345,15 @@ export class EspaceAdmin implements OnInit {
         next: () => {
           this.compteReinitialise.set(c.id);
           setTimeout(() => this.compteReinitialise.set(null), 3000);
+        },
+        error: () => { },
+      });
+  }
+  protected toggleActif(c: any): void {
+    this.http.put(`${this.apiUrl}/utilisateurs/${c.id}/toggle-actif`, {}, { headers: this.headers() })
+      .subscribe({
+        next: (res: any) => {
+          c.actif = res.actif;
         },
         error: () => { },
       });
@@ -432,5 +467,57 @@ export class EspaceAdmin implements OnInit {
 
   protected retirerEtudiant(e: any): void {
     this.etudiantsSelectionnes = this.etudiantsSelectionnes.filter(x => x.id !== e.id);
+  }
+  protected ouvrirAffectation(m: any): void {
+    this.moduleAffecter = m;
+    this.enseignantsSelectionnes = m.enseignants ? [...m.enseignants] : [];
+    this.rechercheEnseignant = '';
+    this.enseignantsSuggestions = [];
+    if (this.enseignantsListe.length === 0) {
+      this.http.get<any[]>(`${this.apiUrl}/enseignants`, { headers: this.headers() })
+        .subscribe({ next: (d) => this.enseignantsListe = d, error: () => { } });
+    }
+  }
+
+  protected fermerAffectation(): void {
+    this.moduleAffecter = null;
+    this.rechercheEnseignant = '';
+    this.enseignantsSuggestions = [];
+    this.enseignantsSelectionnes = [];
+  }
+
+  protected rechercherEnseignant(): void {
+    const q = this.rechercheEnseignant.toLowerCase();
+    if (!q) { this.enseignantsSuggestions = []; return; }
+    this.enseignantsSuggestions = this.enseignantsListe
+      .filter(e => (e.nom + ' ' + e.prenom).toLowerCase().includes(q))
+      .slice(0, 8);
+  }
+
+  protected ajouterEnseignant(e: any): void {
+    if (!this.enseignantsSelectionnes.find(x => x.id === e.id)) {
+      this.enseignantsSelectionnes.push(e);
+    }
+    this.rechercheEnseignant = '';
+    this.enseignantsSuggestions = [];
+  }
+
+  protected retirerEnseignant(e: any): void {
+    this.enseignantsSelectionnes = this.enseignantsSelectionnes.filter(x => x.id !== e.id);
+  }
+
+  protected sauvegarderAffectation(): void {
+    if (!this.moduleAffecter) return;
+    const enseignantIds = this.enseignantsSelectionnes
+      .map(e => e.enseignant?.id ?? e.id)
+      .filter(id => id != null);
+    this.http.post(
+      `${this.apiUrl}/matieres/${this.moduleAffecter.id}/affecter-enseignants`,
+      { enseignantIds },
+      { headers: this.headers() }
+    ).subscribe({
+      next: () => { this.fermerAffectation(); this.chargerModules(); },
+      error: (e) => alert('Erreur : ' + JSON.stringify(e.error?.message ?? e.message)),
+    });
   }
 }
