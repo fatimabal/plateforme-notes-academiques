@@ -442,3 +442,50 @@
   margin-bottom: 1rem;
   font-size: 1.2rem;
 }
+.suggestions-liste {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  &:hover {
+    background: #f0f4ff;
+  }
+}
+
+.etudiants-selectionnes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.badge-etudiant {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e8f0fe;
+  color: #1a56db;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #1a56db;
+    font-size: 0.85rem;
+    padding: 0;
+    line-height: 1;
+    &:hover { color: #c0392b; }
+  }
+}

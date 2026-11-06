@@ -81,8 +81,7 @@
         </div>
         <div class="champ">
           <label>Rôle</label>
-          <select [(ngModel)]="nouveauRole" [ngModelOptions]="{standalone: true}">
-            @for (r of roles; track r) {
+          <select [(ngModel)]="nouveauRole" [ngModelOptions]="{standalone: true}"> @for (r of roles; track r) {
             <option [value]="r">{{ r }}</option>
             }
           </select>
@@ -139,6 +138,33 @@
           <input type="text" [(ngModel)]="nouveauLienParents" [ngModelOptions]="{standalone:true}"
             placeholder="Ex: Père, Mère, Tuteur" />
         </div>
+        <div class="champ">
+          <label>Rechercher un étudiant</label>
+          <input type="text" [(ngModel)]="rechercheEtudiant" [ngModelOptions]="{standalone:true}"
+            placeholder="Tapez le nom ou matricule..." (input)="rechercherEtudiant()" />
+          @if (etudiantsSuggestions.length > 0) {
+          <div class="suggestions-liste">
+            @for (e of etudiantsSuggestions; track e.id) {
+            <div class="suggestion-item" (click)="ajouterEtudiant(e)">
+              {{ e.prenom }} {{ e.nom }} — {{ e.etudiant?.matricule }}
+            </div>
+            }
+          </div>
+          }
+        </div>
+        @if (etudiantsSelectionnes.length > 0) {
+        <div class="champ">
+          <label>Étudiants liés</label>
+          <div class="etudiants-selectionnes">
+            @for (e of etudiantsSelectionnes; track e.id) {
+            <span class="badge-etudiant">
+              {{ e.prenom }} {{ e.nom }}
+              <button type="button" (click)="retirerEtudiant(e)">✕</button>
+            </span>
+            }
+          </div>
+        </div>
+        }
         }
         @if (nouveauRole === 'chef_departement') {
         <div class="champ">
@@ -450,6 +476,7 @@
         <thead>
           <tr>
             <th>Libellé</th>
+            <th>Crédits</th>
             <th>Semestre</th>
             <th style="text-align:right;padding-right:1rem;">Actions</th>
           </tr>
@@ -458,6 +485,7 @@
           @for (u of ues(); track u.id) {
           <tr>
             <td class="nom-fort">{{ u.libelle }}</td>
+            <td>{{ u.credits }}</td>
             <td>{{ u.semestre?.libelle }}</td>
             <td class="colonne-actions">
               <button type="button" class="bouton-icone" (click)="modifierRef(u)">✏️</button>
@@ -480,10 +508,6 @@
         <div class="champ">
           <label>Coefficient</label>
           <input type="number" [(ngModel)]="champCoefficient" [ngModelOptions]="{standalone:true}" />
-        </div>
-        <div class="champ">
-          <label>Crédits</label>
-          <input type="number" [(ngModel)]="champCredits" [ngModelOptions]="{standalone:true}" />
         </div>
         <div class="champ">
           <label>Volume Horaire</label>
@@ -510,7 +534,6 @@
           <tr>
             <th>Libellé</th>
             <th>Coefficient</th>
-            <th>Crédits</th>
             <th>UE</th>
             <th style="text-align:right;padding-right:1rem;">Actions</th>
           </tr>
@@ -520,7 +543,6 @@
           <tr>
             <td class="nom-fort">{{ m.libelle }}</td>
             <td>{{ m.coefficient }}</td>
-            <td>{{ m.credits }}</td>
             <td>{{ m.ue?.libelle }}</td>
             <td class="colonne-actions">
               <button type="button" class="bouton-icone" (click)="modifierRef(m)">✏️</button>
@@ -627,19 +649,33 @@
             <td><strong>Adresse</strong></td>
             <td>{{ detailsUtilisateur()!.parent_etudiant.adresse }}</td>
           </tr>
+          <tr>
+            <td><strong>Lien parental</strong></td>
+            <td>{{ detailsUtilisateur()!.parent_etudiant.lienParents }}</td>
+          </tr>
+          @if (detailsUtilisateur()!.parent_etudiant.etudiants?.length > 0) {
+          <tr>
+            <td><strong>Enfants liés</strong></td>
+            <td>
+              @for (e of detailsUtilisateur()!.parent_etudiant.etudiants; track e.id) {
+              {{ e.user?.prenom }} {{ e.user?.nom }} ({{ e.matricule }})<br>
+              }
+            </td>
+          </tr>
           }
-          @if (detailsUtilisateur()!.chefDepartement) {
+          }
+          @if (detailsUtilisateur()!.chef_departement) {
           <tr>
             <td><strong>Spécialité</strong></td>
-            <td>{{ detailsUtilisateur()!.chefDepartement.specialite }}</td>
+            <td>{{ detailsUtilisateur()!.chef_departement.specialite }}</td>
           </tr>
           <tr>
             <td><strong>Grade</strong></td>
-            <td>{{ detailsUtilisateur()!.chefDepartement.grade }}</td>
+            <td>{{ detailsUtilisateur()!.chef_departement.grade }}</td>
           </tr>
           <tr>
             <td><strong>Mandat</strong></td>
-            <td>{{ detailsUtilisateur()!.chefDepartement.mandat }}</td>
+            <td>{{ detailsUtilisateur()!.chef_departement.mandat }}</td>
           </tr>
           }
         </tbody>
@@ -648,26 +684,4 @@
     </div>
   </div>
   }
-  @if (detailsUtilisateur()!.chef_departement) {
-  <tr>
-    <td><strong>Spécialité</strong></td>
-    <td>{{ detailsUtilisateur()!.chef_departement.specialite }}</td>
-  </tr>
-  <tr>
-    <td><strong>Grade</strong></td>
-    <td>{{ detailsUtilisateur()!.chef_departement.grade }}</td>
-  </tr>
-  <tr>
-    <td><strong>Mandat</strong></td>
-    <td>{{ detailsUtilisateur()!.chef_departement.mandat }}</td>
-  </tr>
-  <tr>
-    <td><strong>Date début</strong></td>
-    <td>{{ detailsUtilisateur()!.chef_departement.dateDebut }}</td>
-  </tr>
-  <tr>
-    <td><strong>Date fin</strong></td>
-    <td>{{ detailsUtilisateur()!.chef_departement.dateFin }}</td>
-  </tr>
-}
 </div>

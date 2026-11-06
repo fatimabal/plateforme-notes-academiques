@@ -111,6 +111,9 @@ export class EspaceAdmin implements OnInit {
   protected nouveauProfession = '';
   protected nouveauAdresse = '';
   protected nouveauLienParents = '';
+  protected rechercheEtudiant = '';
+  protected etudiantsSuggestions: any[] = [];
+  protected etudiantsSelectionnes: any[] = [];
   //  data proxy (pour compatibilité avec le HTML existant) 
   protected readonly data = {
     nomActeur: this.nomActeur,
@@ -249,6 +252,9 @@ export class EspaceAdmin implements OnInit {
     this.nouveauLienParents = '';
     this.nouveauTelephone = '';
     this.chargerFilieres();
+    this.rechercheEtudiant = '';
+    this.etudiantsSuggestions = [];
+    this.etudiantsSelectionnes = [];
   }
 
   protected creerCompte(): void {
@@ -271,6 +277,7 @@ export class EspaceAdmin implements OnInit {
       profession: this.nouveauProfession,
       adresse: this.nouveauAdresse,
       lienParents: this.nouveauLienParents,
+      etudiantIds: this.etudiantsSelectionnes.map(e => e.etudiant?.id).filter(id => id != null),
     };
     this.http.post(`${this.apiUrl}/register`, body, { headers: this.headers() })
       .subscribe({
@@ -405,5 +412,25 @@ export class EspaceAdmin implements OnInit {
     else if (onglet === 'Semestres') this.chargerSemestres();
     else if (onglet === 'UE') { this.chargerUes(); this.chargerSemestres(); }
     else if (onglet === 'Modules') { this.chargerModules(); this.chargerUes(); }
+  }
+  protected rechercherEtudiant(): void {
+    const q = this.rechercheEtudiant.toLowerCase();
+    if (!q) { this.etudiantsSuggestions = []; return; }
+    this.etudiantsSuggestions = this.comptesApi()
+      .filter(c => c.role === 'etudiant' &&
+        (c.nom + ' ' + c.prenom + ' ' + (c.etudiant?.matricule ?? '')).toLowerCase().includes(q))
+      .slice(0, 8);
+  }
+
+  protected ajouterEtudiant(e: any): void {
+    if (!this.etudiantsSelectionnes.find(x => x.id === e.id)) {
+      this.etudiantsSelectionnes.push(e);
+    }
+    this.rechercheEtudiant = '';
+    this.etudiantsSuggestions = [];
+  }
+
+  protected retirerEtudiant(e: any): void {
+    this.etudiantsSelectionnes = this.etudiantsSelectionnes.filter(x => x.id !== e.id);
   }
 }
