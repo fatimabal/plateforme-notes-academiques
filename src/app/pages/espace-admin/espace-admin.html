@@ -81,7 +81,8 @@
         </div>
         <div class="champ">
           <label>Rôle</label>
-          <select [(ngModel)]="nouveauRole" [ngModelOptions]="{standalone: true}"> @for (r of roles; track r) {
+          <select [(ngModel)]="nouveauRole" [ngModelOptions]="{standalone: true}">
+            @for (r of roles; track r) {
             <option [value]="r">{{ r }}</option>
             }
           </select>
@@ -134,7 +135,6 @@
             }
           </select>
         </div>
-        }
         }
         @if (nouveauRole === 'parent') {
         <div class="champ">
@@ -248,6 +248,9 @@
                   [title]="c.actif ? 'Désactiver' : 'Activer'" [style.opacity]="c.actif ? '1' : '0.4'">
                   {{ c.actif ? '✅' : '🚫' }}
                 </button>
+              </td>
+            </tr>
+            }
           </tbody>
         </table>
       </div>
@@ -267,8 +270,7 @@
           @for (c of comptesFiltres(); track c.id) {
           <tr>
             @if (compteEnEdition() === c.id) {
-            <td><input type="text" [(ngModel)]="nomEdite" [ngModelOptions]="{standalone: true}" class="input-edition" />
-            </td>
+            <td><input type="text" [(ngModel)]="nomEdite" [ngModelOptions]="{standalone: true}" class="input-edition" /></td>
             <td>{{ c.email }}</td>
             <td>
               <select [(ngModel)]="roleEdite" [ngModelOptions]="{standalone: true}" class="input-edition">
@@ -277,8 +279,7 @@
                 }
               </select>
             </td>
-            <td><input type="text" [(ngModel)]="detailsEdites" [ngModelOptions]="{standalone: true}"
-                class="input-edition" /></td>
+            <td><input type="text" [(ngModel)]="detailsEdites" [ngModelOptions]="{standalone: true}" class="input-edition" /></td>
             <td class="colonne-actions">
               <button type="button" class="bouton-principal" (click)="enregistrerEdition(c)">Enregistrer</button>
               <button type="button" class="bouton-annuler" (click)="annulerEditionCompte()">Annuler</button>
@@ -325,12 +326,10 @@
       <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
         <div class="champ">
           <label>Nom du département</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Génie Logiciel" />
+          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Génie Logiciel" />
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
           @if (refEnEdition) {
           <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
           }
@@ -362,13 +361,11 @@
       <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
         <div class="champ">
           <label>Nom de la filière</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Génie Logiciel" />
+          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Génie Logiciel" />
         </div>
         <div class="champ">
           <label>Diplôme</label>
-          <input type="text" [(ngModel)]="champDiplome" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Licence" />
+          <input type="text" [(ngModel)]="champDiplome" [ngModelOptions]="{standalone:true}" placeholder="Ex: Licence" />
         </div>
         <div class="champ">
           <label>Département</label>
@@ -379,8 +376,7 @@
           </select>
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
           @if (refEnEdition) {
           <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
           }
@@ -431,8 +427,7 @@
           </select>
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
           @if (refEnEdition) {
           <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
           }
@@ -471,8 +466,7 @@
           <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Semestre 1" />
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
           @if (refEnEdition) {
           <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
           }
@@ -520,8 +514,7 @@
           </select>
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
           @if (refEnEdition) {
           <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
           }
@@ -557,8 +550,7 @@
       <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
         <div class="champ">
           <label>Libellé</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Algorithmique" />
+          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Algorithmique" />
         </div>
         <div class="champ">
           <label>Coefficient</label>
@@ -577,8 +569,7 @@
           </select>
         </div>
         <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
+          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
           @if (refEnEdition) {
           <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
           }
@@ -655,6 +646,7 @@
       </table>
     </section>
   </main>
+
   @if (moduleAffecter) {
   <div class="overlay-modal" (click)="fermerAffectation()">
     <div class="modal-details" (click)="$event.stopPropagation()">
@@ -693,6 +685,7 @@
     </div>
   </div>
   }
+
   @if (detailsUtilisateur()) {
   <div class="overlay-modal" (click)="detailsUtilisateur.set(null)">
     <div class="modal-details" (click)="$event.stopPropagation()">
