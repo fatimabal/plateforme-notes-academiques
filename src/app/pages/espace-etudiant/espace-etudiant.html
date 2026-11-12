@@ -49,6 +49,8 @@
     <div class="ligne-roles" style="margin-bottom:1.5rem;">
       <button type="button" [class]="ongletActif()==='notes' ? 'semestre semestre-actif' : 'semestre'"
         (click)="ongletActif.set('notes')">Mes notes</button>
+          <button type="button" [class]="ongletActif()==='reclamations' ? 'semestre semestre-actif' : 'semestre'"
+        (click)="ongletActif.set('reclamations'); chargerReclamations()">Mes réclamations</button>
       <button type="button" [class]="ongletActif()==='profil' ? 'semestre semestre-actif' : 'semestre'"
         (click)="ongletActif.set('profil')">Mon profil</button>
     </div>
@@ -159,8 +161,47 @@
     </section>
     }
 
-    } @else {
+    } @else if (ongletActif() === 'reclamations') {
 
+    <section class="carte">
+      <h2 class="titre-carte">Mes réclamations ({{ mesReclamations().length }})</h2>
+      @if (mesReclamations().length === 0) {
+      <p class="etat-vide">Aucune réclamation envoyée.</p>
+      } @else {
+      <table class="table-notes">
+        <thead>
+          <tr>
+            <th>Matière</th>
+            <th>Motif</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of mesReclamations(); track r.id) {
+          <tr>
+            <td>{{ r.note?.matiere?.libelle ?? '—' }}</td>
+            <td>{{ r.motif }}</td>
+            <td>
+              <span [class]="r.statut === 'traitee' ? 'badge-statut' : 'statut-reclamee'">
+                {{ r.statut === 'traitee' ? 'Traitée' : 'En attente' }}
+              </span>
+            </td>
+            <td>
+              @if (r.statut !== 'traitee') {
+              <button type="button" class="bouton-reclamer" (click)="relancerReclamation(r.id)">
+                🔁 Relancer
+              </button>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+      }
+    </section>
+
+    } @else {
     <section class="carte">
       <h2 class="titre-carte">Mon profil</h2>
       <div class="grille-info" style="margin-bottom:1.5rem;">

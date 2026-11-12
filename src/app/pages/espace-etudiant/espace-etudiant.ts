@@ -22,7 +22,7 @@ export class EspaceEtudiant implements OnInit {
   protected readonly dateNaissance = signal<string>('—');
   protected readonly lieuNaissance = signal<string>('—');
   protected readonly filiere = signal<string>('—');
-  protected readonly ongletActif = signal<'notes' | 'profil'>('notes');
+  protected readonly ongletActif = signal<'notes' | 'reclamations' | 'profil'>('notes');
   protected readonly nomEtudiant = signal<string>('');
   protected readonly classe = signal<string>('—');
   protected readonly semestreSelectionneCode = signal<string | null>(null);
@@ -38,6 +38,7 @@ export class EspaceEtudiant implements OnInit {
 
   // Réclamations
   protected readonly reclamationOuverte = signal<string | null>(null);
+  protected readonly mesReclamations = signal<any[]>([]);
   protected motifReclamation = '';
   protected readonly reclamationsEnvoyees = signal<Set<string>>(new Set());
 
@@ -211,4 +212,17 @@ export class EspaceEtudiant implements OnInit {
       error: () => {}
     });
   }
+  protected chargerReclamations(): void {
+  this.http.get<any[]>(`${this.apiUrl}/reclamations/mes-reclamations`, { headers: this.headers }).subscribe({
+    next: (data) => this.mesReclamations.set(Array.isArray(data) ? data : []),
+    error: () => {}
+  });
+}
+
+protected relancerReclamation(id: number): void {
+  this.http.post(`${this.apiUrl}/reclamations/${id}/relancer`, {}, { headers: this.headers }).subscribe({
+    next: () => this.chargerReclamations(),
+    error: (e) => console.error(e)
+  });
+}
 }
