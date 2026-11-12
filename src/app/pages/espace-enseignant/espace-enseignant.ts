@@ -44,15 +44,9 @@ export class EspaceEnseignant implements OnInit {
 
   protected readonly etudiantsFiltres = computed(() => {
     const classeId = this.classeSelectionnee();
-    const q = this.rechercheEtudiant.toLowerCase();
     let liste = this.etudiants();
     if (classeId) {
-      liste = liste.filter(e => e.classe_id === classeId || e.inscription?.[0]?.classe_id === classeId);
-    }
-    if (q) {
-      liste = liste.filter(e =>
-        (e.user?.nom + ' ' + e.user?.prenom + ' ' + e.matricule).toLowerCase().includes(q)
-      );
+      liste = liste.filter(e => e.classe_id === classeId);
     }
     return liste;
   });
@@ -72,10 +66,10 @@ export class EspaceEnseignant implements OnInit {
 
   // Formulaire saisie
   protected readonly form = this.fb.group({
-    matiere_id: [null as number | null, Validators.required],
-    etudiant_id: [null as number | null, Validators.required],
+    matiere_id: ['', Validators.required],
+    etudiant_id: ['', Validators.required],
     type: [this.typesEvaluation[0], Validators.required],
-    semestre_id: [null as number | null, Validators.required],
+    semestre_id: ['', Validators.required],
     note: [null as number | null, [Validators.required, Validators.min(0), Validators.max(20)]],
     coefficient: [1, [Validators.required, Validators.min(1)]],
   });
@@ -105,29 +99,29 @@ export class EspaceEnseignant implements OnInit {
         this.nomEdite = data.nom ?? '';
         this.prenomEdite = data.prenom ?? '';
       },
-      error: () => {}
+      error: () => { }
     });
   }
 
   private chargerDonnees(): void {
     this.http.get<any[]>(`${this.apiUrl}/matieres`, { headers: this.headers }).subscribe({
       next: (data) => this.matieres.set(Array.isArray(data) ? data : []),
-      error: () => {}
+      error: () => { }
     });
 
     this.http.get<any[]>(`${this.apiUrl}/classes`, { headers: this.headers }).subscribe({
       next: (data) => this.classes.set(Array.isArray(data) ? data : []),
-      error: () => {}
+      error: () => { }
     });
 
     this.http.get<any[]>(`${this.apiUrl}/etudiants-liste`, { headers: this.headers }).subscribe({
       next: (data) => this.etudiants.set(Array.isArray(data) ? data : []),
-      error: () => {}
+      error: () => { }
     });
 
     this.http.get<any[]>(`${this.apiUrl}/semestres`, { headers: this.headers }).subscribe({
       next: (data) => this.semestres.set(Array.isArray(data) ? data : []),
-      error: () => {}
+      error: () => { }
     });
 
     this.http.get<any[]>(`${this.apiUrl}/notes/mes-notes`, { headers: this.headers }).subscribe({
@@ -137,7 +131,7 @@ export class EspaceEnseignant implements OnInit {
 
     this.http.get<any[]>(`${this.apiUrl}/reclamations`, { headers: this.headers }).subscribe({
       next: (data) => this.reclamationsOuvertes.set((Array.isArray(data) ? data : []).filter((r: any) => r.statut !== 'traitee')),
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -154,7 +148,7 @@ export class EspaceEnseignant implements OnInit {
       semestre_id: v.semestre_id,
       valeur: v.note,
       coefficient: v.coefficient,
-      statut: 'brouillon',
+      statut: 'valide',
     }, { headers: this.headers }).subscribe({
       next: () => {
         this.form.patchValue({ note: null, coefficient: 1 });
@@ -218,7 +212,14 @@ export class EspaceEnseignant implements OnInit {
         localStorage.setItem('prenom', this.prenomEdite);
         this.profilEnEdition.set(false);
       },
-      error: () => {}
+      error: () => { }
     });
   }
+  protected supprimerNote(id: number): void {
+  if (!confirm('Supprimer cette note ?')) return;
+  this.http.delete(`${this.apiUrl}/notes/${id}`, { headers: this.headers }).subscribe({
+    next: () => this.chargerDonnees(),
+    error: (e) => console.error(e)
+  });
+}
 }

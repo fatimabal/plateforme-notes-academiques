@@ -55,6 +55,7 @@
           <div class="champ">
             <label for="matiere">Matière</label>
             <select id="matiere" formControlName="matiere_id">
+              <option value="">-- Choisir --</option>
               @for (m of matieres(); track m.id) {
               <option [value]="m.id">{{ m.libelle }}</option>
               }
@@ -62,9 +63,21 @@
           </div>
 
           <div class="champ">
+            <label for="classe">Classe</label>
+            <select id="classe" [ngModel]="classeSelectionnee()"
+              (ngModelChange)="classeSelectionnee.set(+$event || null)" [ngModelOptions]="{standalone:true}">
+              <option [value]="null">-- Toutes les classes --</option>
+              @for (c of classes(); track c.id) {
+              <option [value]="c.id">{{ c.nomClasse }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="champ">
             <label for="etudiant">Étudiant</label>
             <select id="etudiant" formControlName="etudiant_id">
-              @for (e of etudiants(); track e.id) {
+              <option value="">-- Choisir --</option>
+              @for (e of etudiantsFiltres(); track e.id) {
               <option [value]="e.id">{{ e.user?.prenom }} {{ e.user?.nom }}</option>
               }
             </select>
@@ -82,6 +95,7 @@
           <div class="champ">
             <label for="semestre">Semestre</label>
             <select id="semestre" formControlName="semestre_id">
+              <option value="">-- Choisir --</option>
               @for (s of semestres(); track s.id) {
               <option [value]="s.id">{{ s.libelle }}</option>
               }
@@ -113,7 +127,8 @@
             @for (r of reclamationsOuvertes(); track r.id) {
             <li>
               <div>
-                <p class="ligne-reclamation-titre">{{ r.etudiant?.user?.prenom }} {{ r.etudiant?.user?.nom }} · {{ r.note?.matiere?.libelle }}</p>
+                <p class="ligne-reclamation-titre">{{ r.etudiant?.user?.prenom }} {{ r.etudiant?.user?.nom }} · {{
+                  r.note?.matiere?.libelle }}</p>
                 <p class="ligne-reclamation-motif">{{ r.motif }}</p>
               </div>
               <button type="button" class="bouton-secondaire" (click)="traiterReclamation(r.id)">
@@ -124,23 +139,6 @@
           </ul>
           }
         </section>
-
-        <section class="carte">
-          <h2 class="titre-carte">Brouillons à valider ({{ brouillons().length }})</h2>
-          @if (brouillons().length === 0) {
-          <p class="etat-vide">Aucune note en attente.</p>
-          } @else {
-          <ul class="liste-brouillons">
-            @for (n of brouillons(); track n.id) {
-            <li>
-              <span>{{ n.etudiant?.user?.prenom }} {{ n.etudiant?.user?.nom }} · {{ n.matiere?.libelle }} — {{ n.valeur }}/20</span>
-              <button type="button" class="bouton-secondaire" (click)="validerBrouillon(n.id)">Valider</button>
-            </li>
-            }
-          </ul>
-          }
-        </section>
-
         <section class="carte">
           <h2 class="titre-carte">Notes validées prêtes à publier ({{ validees().length }})</h2>
           @if (validees().length === 0) {
@@ -149,7 +147,8 @@
           <ul class="liste-brouillons">
             @for (n of validees(); track n.id) {
             <li>
-              <span>{{ n.etudiant?.user?.prenom }} {{ n.etudiant?.user?.nom }} · {{ n.matiere?.libelle }} — {{ n.valeur }}/20</span>
+              <span>{{ n.etudiant?.user?.prenom }} {{ n.etudiant?.user?.nom }} · {{ n.matiere?.libelle }} — {{ n.valeur
+                }}/20</span>
               <button type="button" class="bouton-principal-petit" (click)="publierNote(n.id)">Publier</button>
             </li>
             }
@@ -176,7 +175,7 @@
               <tr>
                 <td>{{ n.etudiant?.user?.prenom }} {{ n.etudiant?.user?.nom }}</td>
                 <td>{{ n.matiere?.libelle }}</td>
-                <td>{{ n.type ?? n.evaluation?.typeEvaluation }}</td>
+                <td>{{ n.type || n.evaluation?.typeEvaluation || '—' }}</td>
                 <td>
                   @if (noteEnEdition() === n.id) {
                   <input type="number" [(ngModel)]="noteEditee" [ngModelOptions]="{standalone: true}"
@@ -186,7 +185,7 @@
                   }
                 </td>
                 <td><span class="badge-statut">publiée</span></td>
-                <td>{{ n.reclamation ? 'Réclamé' : '—' }}td>
+                <td>{{ n.reclamation ? 'Réclamé' : '—' }}</td>
                 <td class="colonne-action">
                   @if (noteEnEdition() === n.id) {
                   <button type="button" class="bouton-icone" (click)="enregistrerEdition(n.id)"
@@ -195,6 +194,8 @@
                   } @else {
                   <button type="button" class="bouton-icone" (click)="ouvrirEdition(n.id, n.valeur, n.coefficient)"
                     title="Modifier">✏️</button>
+                  <button type="button" class="bouton-icone" (click)="supprimerNote(n.id)" title="Supprimer"
+                    style="color:red;">🗑️</button>
                   }
                 </td>
               </tr>
