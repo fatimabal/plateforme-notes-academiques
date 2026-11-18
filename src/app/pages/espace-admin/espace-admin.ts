@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, effect, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../core/notification.service';
 import { RouterLink } from '@angular/router';
@@ -144,11 +144,29 @@ export class EspaceAdmin implements OnInit {
   };
 
   protected detailsUtilisateur = signal<any>(null);
-
-  protected voirDetails(c: any): void {
-    this.detailsUtilisateur.set(c);
+  // ── Génération des bulletins ──
+protected semestreSelectionneGeneration = signal<number | string>('');
+protected generationEnCours = signal(false);
+protected generationResultat = signal<any>(null);
+protected generationErreur = signal<string | null>(null);
+protected bulletinsExistants = signal<any[]>([]);
+protected bulletinVu = signal<any>(null); 
+protected voirDetails(c: any): void {
+  this.detailsUtilisateur.set(c);
+}
+  //  Init
+  constructor() {
+    // Recharger les bulletins existants à chaque changement de semestre
+    effect(() => {
+      const semestreId = this.semestreSelectionneGeneration();
+      if (semestreId) {
+        this.verifierBulletinsExistants();
+      } else {
+        this.bulletinsExistants.set([]);
+      }
+    });
   }
-  //  Init 
+
   ngOnInit(): void {
     this.chargerTout();
   }
@@ -520,4 +538,39 @@ export class EspaceAdmin implements OnInit {
       error: (e) => alert('Erreur : ' + JSON.stringify(e.error?.message ?? e.message)),
     });
   }
+  protected genererBulletins(): void {
+  const semestreId = this.semestreSelectionneGeneration();
+  if (!semestreId) { this.generationErreur.set('Veuillez sélectionner un semestre.'); return; }
+  this.generationEnCours.set(true);
+  this.generationResultat.set(null);
+  this.generationErreur.set(null);
+  this.http.post<any>(`${this.apiUrl}/bulletins/generer-masse`, { semestre_id: semestreId }, { headers: this.headers() })
+    .subscribe({
+      next: (res) => { this.generationEnCours.set(false); this.generationResultat.set(res); this.verifierBulletinsExistants(); },
+      error: (e) => { this.generationEnCours.set(false); this.generationErreur.set(e.error?.message ?? 'Erreur.'); }
+    });
+}
+
+protected verifierBulletinsExistants(): void {
+  const semestreId = this.semestreSelectionneGeneration();
+  if (!semestreId) return;
+  this.http.get<any>(`${this.apiUrl}/bulletins/semestre/${semestreId}`, { headers: this.headers() })
+    .subscribe({
+      next: (res) => this.bulletinsExistants.set(res.bulletins ?? []),
+      error: () => this.bulletinsExistants.set([])
+    });
+}
+
+protected voirBulletinAdmin(r: any): void {
+  // Chercher le bulletin complet dans bulletinsExistants
+  const bulletin = this.bulletinsExistants().find(
+    (b: any) => (b.etudiant?.user?.prenom + ' ' + b.etudiant?.user?.nom).trim() === r.etudiant
+  );
+  if (bulletin) {
+    this.bulletinVu.set(bulletin);
+  } else {
+    // Fallback : afficher le résumé
+    this.bulletinVu.set(r);
+  }
+}
 }

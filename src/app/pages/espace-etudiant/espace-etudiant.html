@@ -45,11 +45,11 @@
 
   <main class="contenu">
     <h1 class="titre-page">Bonjour, {{ nomEtudiant() }}</h1>
-
+    <button (click)="bulletinOuvert.set(true)">TEST BULLETIN</button>
     <div class="ligne-roles" style="margin-bottom:1.5rem;">
       <button type="button" [class]="ongletActif()==='notes' ? 'semestre semestre-actif' : 'semestre'"
         (click)="ongletActif.set('notes')">Mes notes</button>
-          <button type="button" [class]="ongletActif()==='reclamations' ? 'semestre semestre-actif' : 'semestre'"
+      <button type="button" [class]="ongletActif()==='reclamations' ? 'semestre semestre-actif' : 'semestre'"
         (click)="ongletActif.set('reclamations'); chargerReclamations()">Mes réclamations</button>
       <button type="button" [class]="ongletActif()==='profil' ? 'semestre semestre-actif' : 'semestre'"
         (click)="ongletActif.set('profil')">Mon profil</button>
@@ -86,21 +86,16 @@
       </div>
     </div>
 
-    <section class="carte carte-bulletin">
-      <div>
-        <h2 class="titre-carte">Bulletin de notes — {{ semestreSelectionneCode() }}</h2>
-        <p class="description-carte">
-          @if (moyenneSemestre() !== null) {
-          Votre bulletin est disponible.
-          } @else {
-          Le bulletin de ce semestre n'est pas encore disponible.
-          }
-        </p>
-      </div>
-      <button type="button" class="bouton-bulletin" [disabled]="moyenneSemestre() === null">
-        📄 Voir mon bulletin
-      </button>
-    </section>
+<section class="carte carte-bulletin">
+  <div>
+    <h2 class="titre-carte">Bulletin de notes — {{ semestreSelectionneCode() }}</h2>
+    <p class="description-carte">Votre bulletin est disponible.</p>
+  </div>
+  <button type="button" class="bouton-principal" style="cursor:pointer;"
+    (click)="bulletinOuvert.set(true); voirBulletin()">
+    Voir mon bulletin
+  </button>
+</section>
 
     <h2 class="titre-section">Notes publiées — {{ semestreSelectionneCode() }}</h2>
     @if (modulesAffiches().length === 0) {
@@ -224,7 +219,7 @@
       </div>
 
       @if (!profilEnEdition()) {
-      <button type="button" class="bouton-bulletin" (click)="profilEnEdition.set(true)">✏ Modifier mes informations</button>
+      <button type="button" class="bouton-modifier" (click)="profilEnEdition.set(true)">✏ Modifier mes informations</button>
       } @else {
       <div class="formulaire-nouveau-compte" style="margin-top:1rem;">
         <div class="champ">
@@ -245,4 +240,120 @@
 
     }
   </main>
+    @if (bulletinOuvert()) {
+  <div class="overlay-modal" (click)="fermerBulletin()">
+    <div class="modal-details" style="max-width:860px;width:97%;max-height:90vh;overflow-y:auto;" (click)="$event.stopPropagation()">
+
+      @if (bulletinChargement()) {
+      <p style="text-align:center;padding:2rem;color:#666;">⏳ Chargement du bulletin…</p>
+      } @else if (!bulletinData()) {
+      <p style="text-align:center;padding:2rem;color:#b91c1c;">
+        ⚠️ Bulletin non disponible pour ce semestre.<br>
+        <small>Demandez à l'administrateur de générer les bulletins.</small>
+      </p>
+      } @else {
+
+      <!-- En-tête ISI -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a56db;padding-bottom:1rem;margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <img src="isi.jpg" alt="ISI" style="height:48px;" />
+          <div>
+            <p style="margin:0;font-weight:700;font-size:0.95rem;color:#1a56db;">GROUPE ISI</p>
+            <p style="margin:0;font-size:0.75rem;color:#555;">Sciences et Technologies</p>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0;font-weight:700;font-size:1rem;color:#1a56db;">Bulletin de notes</p>
+          <p style="margin:0;font-size:0.85rem;color:#555;">{{ bulletinData().semestre?.libelle }}</p>
+          <p style="margin:0;font-size:0.8rem;color:#888;">Session : {{ bulletinData().session ?? 'Normale' }}</p>
+        </div>
+      </div>
+
+      <!-- Infos étudiant -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1.5rem;font-size:0.85rem;margin-bottom:1rem;padding:0.75rem;background:#f8faff;border-radius:6px;">
+        <div><strong>Année académique :</strong> {{ bulletinData().infos_etudiant?.anneeAcademique ?? '—' }}</div>
+        <div><strong>Matricule :</strong> {{ bulletinData().infos_etudiant?.matricule ?? matricule() }}</div>
+        <div><strong>Prénom et nom :</strong> {{ nomEtudiant() }}</div>
+        <div><strong>Sexe :</strong> {{ bulletinData().infos_etudiant?.sexe ?? '—' }}</div>
+        <div><strong>Date et lieu de naissance :</strong> {{ bulletinData().infos_etudiant?.dateNaissance ?? dateNaissance() }} à {{ bulletinData().infos_etudiant?.lieuNaissance ?? lieuNaissance() }}</div>
+        <div><strong>Classe :</strong> {{ bulletinData().infos_etudiant?.classe ?? classe() }}</div>
+        <div><strong>Filière :</strong> {{ bulletinData().infos_etudiant?.filiere ?? filiere() }}</div>
+        <div><strong>Diplôme :</strong> {{ bulletinData().infos_etudiant?.diplome ?? '—' }}</div>
+      </div>
+
+      <!-- Tableau détaillé par UE -->
+      @for (d of bulletinData().details; track d.id) {
+      <div style="margin-bottom:1rem;">
+        <div style="background:#1a56db;color:white;padding:0.4rem 0.75rem;font-weight:600;font-size:0.85rem;border-radius:4px 4px 0 0;">
+          {{ d.ue?.libelle ?? 'UE ' + d.ue_id }}
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+          <thead>
+            <tr style="background:#e8f0fe;">
+              <th style="padding:5px 8px;text-align:left;border:1px solid #d0d9f0;">Éléments constitutifs</th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">MCC<br><span style="font-weight:normal;font-size:0.75rem;">40%</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Examen<br><span style="font-weight:normal;font-size:0.75rem;">60%</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moy<br><span style="font-weight:normal;font-size:0.75rem;">EC</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Coef<br><span style="font-weight:normal;font-size:0.75rem;">EC</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moyenne<br><span style="font-weight:normal;font-size:0.75rem;">×Coef</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Appréciation</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of d.ue?.modules; track m.id) {
+            <tr>
+              <td style="padding:4px 8px;border:1px solid #e5e9f5;">{{ m.libelle }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.mcc ?? '—' }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.examen ?? '—' }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;font-weight:600;">{{ m.moyenne_module ?? '—' }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.coefficient }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ (m.moyenne_module && m.coefficient) ? (m.moyenne_module * m.coefficient).toFixed(2) : '—' }}</td>
+              <td style="padding:4px 8px;border:1px solid #e5e9f5;font-size:0.78rem;color:#555;">{{ d.appreciation }}</td>
+            </tr>
+            }
+            <!-- Ligne récap UE -->
+            <tr style="background:#f0f4ff;">
+              <td colspan="4" style="padding:4px 8px;border:1px solid #d0d9f0;text-align:right;font-size:0.78rem;color:#666;">Moyenne UE :</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{ d.ue?.credits }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{ d.moyenne_ue }}/20</td>
+              <td style="padding:4px 8px;border:1px solid #d0d9f0;font-size:0.78rem;">
+                @if (d.valide) {
+                <span style="color:#166534;font-weight:600;">Validée</span>
+                } @else {
+                <span style="color:#b91c1c;font-weight:600;">Non validée</span>
+                }
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      }
+
+      <!-- Récap semestre -->
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border-radius:8px;padding:1rem;margin-top:0.5rem;">
+        <div>
+          <p style="margin:0;font-size:0.8rem;color:#666;">Total crédits obtenus</p>
+          <p style="margin:0;font-size:1.1rem;font-weight:700;color:#1a56db;">
+            {{ bulletinData().details.reduce((s, d) => s + (d.credits_obtenus ?? 0), 0) }}
+            / {{ bulletinData().details.reduce((s, d) => s + (d.ue?.credits ?? 0), 0) }}
+          </p>
+        </div>
+        <div style="text-align:center;">
+          <p style="margin:0;font-size:0.8rem;color:#666;">Moyenne du semestre</p>
+          <p style="margin:0;font-size:1.8rem;font-weight:700;color:#1a56db;">{{ bulletinData().moyenne_generale }}/20</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0;font-size:0.8rem;color:#666;">Mention</p>
+          <p style="margin:0;font-size:1.1rem;font-weight:600;color:#1a56db;">{{ bulletinData().mention }}</p>
+        </div>
+      </div>
+
+      }
+
+      <div style="text-align:right;margin-top:1.5rem;">
+        <button type="button" class="bouton-principal" (click)="fermerBulletin()">Fermer</button>
+      </div>
+    </div>
+  </div>
+  }
 </div>
