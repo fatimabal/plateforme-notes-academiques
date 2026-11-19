@@ -156,21 +156,30 @@ protected voirDetails(c: any): void {
 }
   //  Init
   constructor() {
-    // Recharger les bulletins existants à chaque changement de semestre
     effect(() => {
       const semestreId = this.semestreSelectionneGeneration();
       if (semestreId) {
+        sessionStorage.setItem('admin_semestre_generation', String(semestreId));
         this.verifierBulletinsExistants();
       } else {
+        sessionStorage.removeItem('admin_semestre_generation');
         this.bulletinsExistants.set([]);
       }
     });
   }
 
-  ngOnInit(): void {
-    this.chargerTout();
+ ngOnInit(): void {
+  this.chargerTout();
+  const saved = sessionStorage.getItem('admin_semestre_generation');
+  console.log('saved:', saved);
+  if (saved) {
+    this.semestreSelectionneGeneration.set(saved);
+    setTimeout(() => {
+      console.log('appel verifier avec:', this.semestreSelectionneGeneration());
+      this.verifierBulletinsExistants();
+    }, 1000);
   }
-
+}
   private headers(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
   }
@@ -538,6 +547,13 @@ protected voirDetails(c: any): void {
       error: (e) => alert('Erreur : ' + JSON.stringify(e.error?.message ?? e.message)),
     });
   }
+  protected saveSemestreSession(id: any): void {
+  sessionStorage.setItem('admin_semestre_generation', String(id));
+}
+
+protected clearSemestreSession(): void {
+  sessionStorage.removeItem('admin_semestre_generation');
+}
   protected genererBulletins(): void {
   const semestreId = this.semestreSelectionneGeneration();
   if (!semestreId) { this.generationErreur.set('Veuillez sélectionner un semestre.'); return; }
@@ -553,11 +569,15 @@ protected voirDetails(c: any): void {
 
 protected verifierBulletinsExistants(): void {
   const semestreId = this.semestreSelectionneGeneration();
+  console.log('verifier appelé avec semestreId:', semestreId);
   if (!semestreId) return;
   this.http.get<any>(`${this.apiUrl}/bulletins/semestre/${semestreId}`, { headers: this.headers() })
     .subscribe({
-      next: (res) => this.bulletinsExistants.set(res.bulletins ?? []),
-      error: () => this.bulletinsExistants.set([])
+      next: (res) => {
+        console.log('bulletins reçus:', res.bulletins?.length);
+        this.bulletinsExistants.set(res.bulletins ?? []);
+      },
+      error: (e) => { console.log('erreur:', e); this.bulletinsExistants.set([]); }
     });
 }
 

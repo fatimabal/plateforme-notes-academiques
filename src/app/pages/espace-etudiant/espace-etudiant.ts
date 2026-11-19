@@ -36,6 +36,11 @@ export class EspaceEtudiant implements OnInit {
   private readonly notesApi = signal<any[]>([]);
   private readonly semestresApi = signal<any[]>([]);
 
+  // Bulletin
+  protected readonly bulletinOuvert = signal(false);
+  protected readonly bulletinData = signal<any>(null);
+  protected readonly bulletinChargement = signal(false);
+
   // Réclamations
   protected readonly reclamationOuverte = signal<string | null>(null);
   protected readonly mesReclamations = signal<any[]>([]);
@@ -72,7 +77,8 @@ export class EspaceEtudiant implements OnInit {
         type: n.type ?? n.evaluation?.typeEvaluation ?? '—',
         note: n.valeur,
         coefficient: n.coefficient ?? 1,
-        date: n.dateSaisie ?? n.evaluation?.dateEvaluation ?? '—',      }));
+        date: n.dateSaisie ?? n.evaluation?.dateEvaluation ?? '—',
+      }));
       const total = evaluations.reduce((s, e) => s + e.note * e.coefficient, 0);
       const totalCoef = evaluations.reduce((s, e) => s + e.coefficient, 0);
       const moyenne = totalCoef > 0 ? Math.round((total / totalCoef) * 10) / 10 : 0;
@@ -106,7 +112,7 @@ export class EspaceEtudiant implements OnInit {
         this.nomEdite = data.nom ?? '';
         this.prenomEdite = data.prenom ?? '';
       },
-      error: () => {}
+      error: () => { }
     });
 
     // Charger les semestres
@@ -118,7 +124,7 @@ export class EspaceEtudiant implements OnInit {
           this.semestreSelectionneCode.set(sems[sems.length - 1].code);
         }
       },
-      error: () => {}
+      error: () => { }
     });
 
     // Charger les notes
@@ -206,23 +212,58 @@ export class EspaceEtudiant implements OnInit {
             this.filiere.set(data.etudiant?.filiere ?? '—');
             this.classe.set(data.etudiant?.classe ?? '—');
           },
-          error: () => {}
+          error: () => { }
         });
       },
-      error: () => {}
+      error: () => { }
     });
   }
   protected chargerReclamations(): void {
-  this.http.get<any[]>(`${this.apiUrl}/reclamations/mes-reclamations`, { headers: this.headers }).subscribe({
-    next: (data) => this.mesReclamations.set(Array.isArray(data) ? data : []),
-    error: () => {}
-  });
-}
+    this.http.get<any[]>(`${this.apiUrl}/reclamations/mes-reclamations`, { headers: this.headers }).subscribe({
+      next: (data) => this.mesReclamations.set(Array.isArray(data) ? data : []),
+      error: () => { }
+    });
+  }
 
-protected relancerReclamation(id: number): void {
-  this.http.post(`${this.apiUrl}/reclamations/${id}/relancer`, {}, { headers: this.headers }).subscribe({
-    next: () => this.chargerReclamations(),
-    error: (e) => console.error(e)
-  });
+
+  protected relancerReclamation(id: number): void {
+    this.http.post(`${this.apiUrl}/reclamations/${id}/relancer`, {}, { headers: this.headers }).subscribe({
+      next: () => this.chargerReclamations(),
+      error: (e) => console.error(e)
+    });
+  }
+protected voirBulletin(): void {
+  const semestreCode = this.semestreSelectionneCode();
+  console.log('voirBulletin appelé, semestreCode:', semestreCode);
+  this.bulletinChargement.set(true);
+  this.bulletinOuvert.set(true);
+  this.bulletinData.set(null);
+
+  this.http.get<any>(`${this.apiUrl}/bulletins/mes-bulletins`, { headers: this.headers })
+    .subscribe({
+      next: (data) => {
+        console.log('bulletins reçus:', data);
+        const bulletins = data.bulletins ?? [];
+        let bulletin = null;
+        if (semestreCode) {
+          bulletin = bulletins.find((b: any) => b.semestre?.libelle === semestreCode);
+        }
+        if (!bulletin && bulletins.length > 0) {
+          bulletin = bulletins[0];
+        }
+        console.log('bulletin sélectionné:', bulletin);
+        this.bulletinData.set(bulletin ?? null);
+        this.bulletinChargement.set(false);
+      },
+      error: (e) => {
+        console.log('erreur:', e);
+        this.bulletinData.set(null);
+        this.bulletinChargement.set(false);
+      }
+    });
+}
+protected fermerBulletin(): void {
+  this.bulletinOuvert.set(false);
+  this.bulletinData.set(null);
 }
 }

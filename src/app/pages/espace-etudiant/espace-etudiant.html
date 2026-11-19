@@ -45,7 +45,6 @@
 
   <main class="contenu">
     <h1 class="titre-page">Bonjour, {{ nomEtudiant() }}</h1>
-    <button (click)="bulletinOuvert.set(true)">TEST BULLETIN</button>
     <div class="ligne-roles" style="margin-bottom:1.5rem;">
       <button type="button" [class]="ongletActif()==='notes' ? 'semestre semestre-actif' : 'semestre'"
         (click)="ongletActif.set('notes')">Mes notes</button>
@@ -91,10 +90,10 @@
     <h2 class="titre-carte">Bulletin de notes — {{ semestreSelectionneCode() }}</h2>
     <p class="description-carte">Votre bulletin est disponible.</p>
   </div>
-  <button type="button" class="bouton-principal" style="cursor:pointer;"
-    (click)="bulletinOuvert.set(true); voirBulletin()">
-    Voir mon bulletin
-  </button>
+ <button type="button" class="bouton-principal" style="cursor:pointer;"
+  (click)="voirBulletin()">
+  Voir mon bulletin
+</button>
 </section>
 
     <h2 class="titre-section">Notes publiées — {{ semestreSelectionneCode() }}</h2>

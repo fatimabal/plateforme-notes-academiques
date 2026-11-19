@@ -670,7 +670,8 @@
         <div class="champ">
           <label>Semestre</label>
           <select [ngModel]="semestreSelectionneGeneration()"
-            (ngModelChange)="semestreSelectionneGeneration.set($event)" [ngModelOptions]="{standalone:true}">
+            (ngModelChange)="semestreSelectionneGeneration.set($event); $event ? saveSemestreSession($event) : clearSemestreSession()"
+            [ngModelOptions]="{standalone:true}">
             <option value="">-- Sélectionner un semestre --</option>
             @for (s of semestres(); track s.id) {
             <option [value]="s.id">{{ s.libelle }}</option>
@@ -682,49 +683,62 @@
             @if (generationEnCours()) {
             ⏳ Génération en cours…
             } @else {
-            📋 Générer les bulletins
+            📋 {{ bulletinsExistants().length > 0 ? 'Regénérer les bulletins' : 'Générer les bulletins' }}
             }
           </button>
         </div>
-      </div>
 
-      @if (generationErreur()) {
-      <div
-        style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:1rem;color:#b91c1c;margin-top:0.5rem;">
-        ⚠️ {{ generationErreur() }}
-      </div>
-      }
-
-     @if (generationResultat()) {
-  <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:1rem;margin-top:0.5rem;">
-    <p style="color:#166534;font-weight:600;margin-bottom:0.75rem;">
-      ✅ {{ generationResultat().message }}
-    </p>
-    <table class="table-comptes">
-      <thead>
-        <tr>
-          <th>Étudiant</th>
-          <th>Moyenne générale</th>
-          <th>Mention</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (r of generationResultat().resultats; track r.etudiant) {
-          <tr>
-            <td class="nom-fort">{{ r.etudiant }}</td>
-            <td>{{ r.moyenne }}/20</td>
-            <td><span class="badge-role">{{ r.mention }}</span></td>
-            <td>
-              <button type="button" class="bouton-icone" (click)="voirBulletinAdmin(r)" title="Voir bulletin">📄</button>
-            </td>
-          </tr>
+        @if (generationErreur()) {
+        <div
+          style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:1rem;color:#b91c1c;margin-top:0.5rem;">
+          ⚠️ {{ generationErreur() }}
+        </div>
         }
-      </tbody>
-    </table>
-  </div>
-}
+
+        @if (generationResultat() || bulletinsExistants().length > 0) {
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:1rem;margin-top:0.5rem;">
+          <p style="color:#166534;font-weight:600;margin-bottom:0.75rem;">
+            ✅ {{ generationResultat()?.message ?? (bulletinsExistants().length + ' bulletin(s) généré(s) pour ce
+            semestre') }}
+          </p>
+          <table class="table-comptes">
+            <thead>
+              <tr>
+                <th>Étudiant</th>
+                <th>Moyenne générale</th>
+                <th>Mention</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (generationResultat()) {
+              @for (r of generationResultat().resultats; track r.etudiant) {
+              <tr>
+                <td class="nom-fort">{{ r.etudiant }}</td>
+                <td>{{ r.moyenne }}/20</td>
+                <td><span class="badge-role">{{ r.mention }}</span></td>
+                <td><button type="button" class="bouton-icone" (click)="voirBulletinAdmin(r)"
+                    title="Voir bulletin">📄</button></td>
+              </tr>
+              }
+                            } @else {
+              @for (b of bulletinsExistants(); track b.id) {
+              <tr>
+                <td class="nom-fort">{{ b.etudiant?.user?.prenom }} {{ b.etudiant?.user?.nom }}</td>
+                <td>{{ b.moyenne_generale }}/20</td>
+                <td><span class="badge-role">{{ b.mention }}</span></td>
+                <td><button type="button" class="bouton-icone" (click)="bulletinVu.set(b)"
+                    title="Voir bulletin">📄</button></td>
+              </tr>
+              }
+              }
+            </tbody>
+          </table>
+        </div>
+        }
+      </div>
     </section>
+
   </main>
 
   @if (moduleAffecter) {
@@ -858,17 +872,19 @@
           }
         </tbody>
       </table>
-       <button type="button" class="bouton-principal" (click)="detailsUtilisateur.set(null)">Fermer</button>
+      <button type="button" class="bouton-principal" (click)="detailsUtilisateur.set(null)">Fermer</button>
     </div>
   </div>
   }
 
-   @if (bulletinVu()) {
+  @if (bulletinVu()) {
   <div class="overlay-modal" (click)="bulletinVu.set(null)">
-    <div class="modal-details" style="max-width:860px;width:97%;max-height:90vh;overflow-y:auto;" (click)="$event.stopPropagation()">
+    <div class="modal-details" style="max-width:860px;width:97%;max-height:90vh;overflow-y:auto;"
+      (click)="$event.stopPropagation()">
 
       <!-- En-tête ISI -->
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a56db;padding-bottom:1rem;margin-bottom:1rem;">
+      <div
+        style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a56db;padding-bottom:1rem;margin-bottom:1rem;">
         <div style="display:flex;align-items:center;gap:0.75rem;">
           <img src="isi.jpg" alt="ISI" style="height:48px;" />
           <div>
@@ -884,12 +900,16 @@
       </div>
 
       <!-- Infos étudiant -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1.5rem;font-size:0.85rem;margin-bottom:1rem;padding:0.75rem;background:#f8faff;border-radius:6px;">
+      <div
+        style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1.5rem;font-size:0.85rem;margin-bottom:1rem;padding:0.75rem;background:#f8faff;border-radius:6px;">
         <div><strong>Année académique :</strong> {{ bulletinVu().infos_etudiant?.anneeAcademique ?? '—' }}</div>
-        <div><strong>Matricule :</strong> {{ bulletinVu().infos_etudiant?.matricule ?? bulletinVu().etudiant?.matricule ?? '—' }}</div>
-        <div><strong>Prénom et nom :</strong> {{ bulletinVu().etudiant?.user ? (bulletinVu().etudiant.user.prenom + ' ' + bulletinVu().etudiant.user.nom) : (bulletinVu().etudiant ?? '—') }}</div>
+        <div><strong>Matricule :</strong> {{ bulletinVu().infos_etudiant?.matricule ?? bulletinVu().etudiant?.matricule
+          ?? '—' }}</div>
+        <div><strong>Prénom et nom :</strong> {{ bulletinVu().etudiant?.user ? (bulletinVu().etudiant.user.prenom + ' '
+          + bulletinVu().etudiant.user.nom) : (bulletinVu().etudiant ?? '—') }}</div>
         <div><strong>Sexe :</strong> {{ bulletinVu().infos_etudiant?.sexe ?? '—' }}</div>
-        <div><strong>Date et lieu de naissance :</strong> {{ bulletinVu().infos_etudiant?.dateNaissance ?? '—' }} à {{ bulletinVu().infos_etudiant?.lieuNaissance ?? '—' }}</div>
+        <div><strong>Date et lieu de naissance :</strong> {{ bulletinVu().infos_etudiant?.dateNaissance ?? '—' }} à {{
+          bulletinVu().infos_etudiant?.lieuNaissance ?? '—' }}</div>
         <div><strong>Classe :</strong> {{ bulletinVu().infos_etudiant?.classe ?? '—' }}</div>
         <div><strong>Filière :</strong> {{ bulletinVu().infos_etudiant?.filiere ?? '—' }}</div>
         <div><strong>Diplôme :</strong> {{ bulletinVu().infos_etudiant?.diplome ?? '—' }}</div>
@@ -897,55 +917,70 @@
 
       <!-- Tableau détaillé par UE -->
       @if (bulletinVu().details && bulletinVu().details.length > 0) {
-        @for (d of bulletinVu().details; track d.id) {
-        <div style="margin-bottom:1rem;">
-          <div style="background:#1a56db;color:white;padding:0.4rem 0.75rem;font-weight:600;font-size:0.85rem;border-radius:4px 4px 0 0;">
-            {{ d.ue?.libelle ?? 'UE ' + d.ue_id }}
-          </div>
-          <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
-            <thead>
-              <tr style="background:#e8f0fe;">
-                <th style="padding:5px 8px;text-align:left;border:1px solid #d0d9f0;">Éléments constitutifs</th>
-                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">MCC<br><span style="font-weight:normal;font-size:0.75rem;">40%</span></th>
-                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Examen<br><span style="font-weight:normal;font-size:0.75rem;">60%</span></th>
-                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moy<br><span style="font-weight:normal;font-size:0.75rem;">EC</span></th>
-                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Coef<br><span style="font-weight:normal;font-size:0.75rem;">EC</span></th>
-                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moyenne<br><span style="font-weight:normal;font-size:0.75rem;">×Coef</span></th>
-                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Appréciation</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (m of d.ue?.modules; track m.id) {
-              <tr>
-                <td style="padding:4px 8px;border:1px solid #e5e9f5;">{{ m.libelle }}</td>
-                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.mcc ?? '—' }}</td>
-                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.examen ?? '—' }}</td>
-                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;font-weight:600;">{{ m.moyenne_module ?? '—' }}</td>
-                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.coefficient }}</td>
-                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ (m.moyenne_module && m.coefficient) ? (m.moyenne_module * m.coefficient).toFixed(2) : '—' }}</td>
-                <td style="padding:4px 8px;border:1px solid #e5e9f5;font-size:0.78rem;color:#555;">{{ d.appreciation }}</td>
-              </tr>
-              }
-              <tr style="background:#f0f4ff;">
-                <td colspan="4" style="padding:4px 8px;border:1px solid #d0d9f0;text-align:right;font-size:0.78rem;color:#666;">Moyenne UE :</td>
-                <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{ d.ue?.credits }}</td>
-                <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{ d.moyenne_ue }}/20</td>
-                <td style="padding:4px 8px;border:1px solid #d0d9f0;font-size:0.78rem;">
-                  @if (d.valide) {
-                  <span style="color:#166534;font-weight:600;">Validée</span>
-                  } @else {
-                  <span style="color:#b91c1c;font-weight:600;">Non validée</span>
-                  }
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      @for (d of bulletinVu().details; track d.id) {
+      <div style="margin-bottom:1rem;">
+        <div
+          style="background:#1a56db;color:white;padding:0.4rem 0.75rem;font-weight:600;font-size:0.85rem;border-radius:4px 4px 0 0;">
+          {{ d.ue?.libelle ?? 'UE ' + d.ue_id }}
         </div>
-        }
+        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+          <thead>
+            <tr style="background:#e8f0fe;">
+              <th style="padding:5px 8px;text-align:left;border:1px solid #d0d9f0;">Éléments constitutifs</th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">MCC<br><span
+                  style="font-weight:normal;font-size:0.75rem;">40%</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Examen<br><span
+                  style="font-weight:normal;font-size:0.75rem;">60%</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moy<br><span
+                  style="font-weight:normal;font-size:0.75rem;">EC</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Coef<br><span
+                  style="font-weight:normal;font-size:0.75rem;">EC</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">
+                Moyenne<br><span style="font-weight:normal;font-size:0.75rem;">×Coef</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Appréciation
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of d.ue?.modules; track m.id) {
+            <tr>
+              <td style="padding:4px 8px;border:1px solid #e5e9f5;">{{ m.libelle }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.mcc ?? '—' }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.examen ?? '—' }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;font-weight:600;">{{
+                m.moyenne_module ?? '—' }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.coefficient }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ (m.moyenne_module &&
+                m.coefficient) ? (m.moyenne_module * m.coefficient).toFixed(2) : '—' }}</td>
+              <td style="padding:4px 8px;border:1px solid #e5e9f5;font-size:0.78rem;color:#555;">{{ d.appreciation }}
+              </td>
+            </tr>
+            }
+            <tr style="background:#f0f4ff;">
+              <td colspan="4"
+                style="padding:4px 8px;border:1px solid #d0d9f0;text-align:right;font-size:0.78rem;color:#666;">Moyenne
+                UE :</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{
+                d.ue?.credits }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{
+                d.moyenne_ue }}/20</td>
+              <td style="padding:4px 8px;border:1px solid #d0d9f0;font-size:0.78rem;">
+                @if (d.valide) {
+                <span style="color:#166534;font-weight:600;">Validée</span>
+                } @else {
+                <span style="color:#b91c1c;font-weight:600;">Non validée</span>
+                }
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      }
       }
 
       <!-- Récap semestre -->
-      <div style="display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border-radius:8px;padding:1rem;margin-top:0.5rem;">
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border-radius:8px;padding:1rem;margin-top:0.5rem;">
         <div>
           <p style="margin:0;font-size:0.8rem;color:#666;">Total crédits obtenus</p>
           <p style="margin:0;font-size:1.1rem;font-weight:700;color:#1a56db;">
@@ -955,7 +990,8 @@
         </div>
         <div style="text-align:center;">
           <p style="margin:0;font-size:0.8rem;color:#666;">Moyenne du semestre</p>
-          <p style="margin:0;font-size:1.8rem;font-weight:700;color:#1a56db;">{{ bulletinVu().moyenne_generale ?? bulletinVu().moyenne }}/20</p>
+          <p style="margin:0;font-size:1.8rem;font-weight:700;color:#1a56db;">{{ bulletinVu().moyenne_generale ??
+            bulletinVu().moyenne }}/20</p>
         </div>
         <div style="text-align:right;">
           <p style="margin:0;font-size:0.8rem;color:#666;">Mention</p>
