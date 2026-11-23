@@ -25,7 +25,10 @@ export class NotificationService {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     this.http.post(`${this.apiUrl}/notifications/lues`, {}, { headers }).subscribe({
-      next: () => this.nonLues.set(0)
+      next: () => {
+        this.nonLues.set(0);
+        this.notifications.set([]);
+      }
     });
   }
 }

@@ -32,7 +32,18 @@ export class EspaceEtudiant implements OnInit {
   // champs édition profil
   protected nomEdite = '';
   protected prenomEdite = '';
+  protected dateNaissanceEditee = '';
+  protected lieuNaissanceEdite = '';
+  protected sexeEdite = '';
+  protected telephoneEdite = '';
   protected readonly profilEnEdition = signal(false);
+  protected readonly securiteEnEdition = signal(false);
+  protected readonly securiteErreur = signal<string | null>(null);
+  protected readonly securiteSucces = signal(false);
+  protected emailEdite = '';
+  protected motDePasseEdite = '';
+  protected motDePasseConfirme = '';
+  protected readonly emailActuel = signal<string>('');
 
   // Notes brutes depuis l'API
   private readonly notesApi = signal<any[]>([]);
@@ -120,6 +131,12 @@ export class EspaceEtudiant implements OnInit {
         this.classe.set(data.etudiant?.classe ?? '—');
         this.nomEdite = data.nom ?? '';
         this.prenomEdite = data.prenom ?? '';
+        this.dateNaissanceEditee = data.etudiant?.dateNaissance ?? '';
+        this.lieuNaissanceEdite = data.etudiant?.lieuNaissance ?? '';
+        this.sexeEdite = data.etudiant?.sexe ?? '';
+        this.telephoneEdite = data.telephone ?? '';
+        this.emailActuel.set(data.email ?? '');
+        this.emailEdite = data.email ?? '';
       },
       error: () => { }
     });
@@ -210,6 +227,10 @@ export class EspaceEtudiant implements OnInit {
     this.http.put(`${this.apiUrl}/profile`, {
       nom: this.nomEdite,
       prenom: this.prenomEdite,
+      dateNaissance: this.dateNaissanceEditee,
+      lieuNaissance: this.lieuNaissanceEdite,
+      sexe: this.sexeEdite,
+      telephone: this.telephoneEdite,
     }, { headers: this.headers }).subscribe({
       next: () => {
         this.nomEtudiant.set(`${this.prenomEdite} ${this.nomEdite}`.trim());
@@ -223,6 +244,10 @@ export class EspaceEtudiant implements OnInit {
             this.lieuNaissance.set(data.etudiant?.lieuNaissance ?? '—');
             this.filiere.set(data.etudiant?.filiere ?? '—');
             this.classe.set(data.etudiant?.classe ?? '—');
+            this.dateNaissanceEditee = data.etudiant?.dateNaissance ?? '';
+            this.lieuNaissanceEdite = data.etudiant?.lieuNaissance ?? '';
+            this.sexeEdite = data.etudiant?.sexe ?? '';
+            this.telephoneEdite = data.telephone ?? '';
           },
           error: () => { }
         });
@@ -242,6 +267,39 @@ export class EspaceEtudiant implements OnInit {
     this.http.post(`${this.apiUrl}/reclamations/${id}/relancer`, {}, { headers: this.headers }).subscribe({
       next: () => this.chargerReclamations(),
       error: (e) => console.error(e)
+    });
+  }
+
+  protected enregistrerSecurite(): void {
+    this.securiteErreur.set(null);
+    this.securiteSucces.set(false);
+    if (this.motDePasseEdite && this.motDePasseEdite !== this.motDePasseConfirme) {
+      this.securiteErreur.set('Les mots de passe ne correspondent pas.');
+      return;
+    }
+    const body: any = {};
+    if (this.emailEdite && this.emailEdite !== this.emailActuel()) {
+      body.email = this.emailEdite;
+    }
+    if (this.motDePasseEdite) {
+      body.password = this.motDePasseEdite;
+      body.password_confirmation = this.motDePasseConfirme;
+    }
+    if (Object.keys(body).length === 0) {
+      this.securiteEnEdition.set(false);
+      return;
+    }
+    this.http.put(`${this.apiUrl}/profile`, body, { headers: this.headers }).subscribe({
+      next: () => {
+        if (body.email) this.emailActuel.set(body.email);
+        this.motDePasseEdite = '';
+        this.motDePasseConfirme = '';
+        this.securiteSucces.set(true);
+        setTimeout(() => { this.securiteEnEdition.set(false); this.securiteSucces.set(false); }, 1500);
+      },
+      error: (e) => {
+        this.securiteErreur.set(e.error?.message ?? 'Erreur lors de la mise à jour.');
+      }
     });
   }
 

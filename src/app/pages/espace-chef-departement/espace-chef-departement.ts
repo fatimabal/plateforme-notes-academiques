@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -10,7 +11,7 @@ const SEUIL_DIFFICULTE = 13;
 
 @Component({
   selector: 'app-espace-chef-departement',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './espace-chef-departement.html',
   styleUrl: './espace-chef-departement.scss',
 })
@@ -22,70 +23,77 @@ export class EspaceChefDepartement implements OnInit {
 
   protected readonly nomChef = localStorage.getItem('nom') ?? 'Chef Département';
 
-  private readonly toutesLesNotes = signal<any[]>([]);
-  private readonly toutesLesReclamations = signal<any[]>([]);
+  // Onglets
+  protected readonly ongletActif = signal<'tableau-bord' | 'reclamations' | 'profil'>('tableau-bord');
 
-  // Bulletins
+  // Bulletins (source principale de données)
   protected readonly bulletins = signal<any[]>([]);
   protected readonly bulletinVu = signal<any>(null);
   protected readonly pdfEnCours = signal(false);
+
+  // Semestres disponibles (depuis l'API)
+  protected readonly semestresDisponibles = signal<{ id: number; libelle: string }[]>([]);
+  protected readonly semestreSelectionne = signal<{ id: number; libelle: string } | null>(null);
+
+  // Réclamations
+  protected readonly reclamations = signal<any[]>([]);
+  private readonly toutesLesReclamations = signal<any[]>([]);
+
+  // Profil
+  protected profil = signal<any>(null);
+  protected readonly enEditionProfil = signal(false);
+  protected nomEdite = '';
+  protected prenomEdite = '';
+  protected emailEdite = '';
+  protected telephoneEdite = '';
+  protected readonly messageSuccesProfil = signal('');
+  protected readonly messageErreurProfil = signal('');
 
   private get headers(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
   }
 
-  // Semestres extraits des vraies notes
-  protected readonly semestres = computed(() => {
-    const s = new Set<string>();
-    for (const n of this.toutesLesNotes()) {
-      const sem = n.evaluation?.semestre?.libelle ?? n.evaluation?.matiere?.ue?.semestre?.libelle;
-      if (sem) s.add(sem);
-    }
-    return s.size > 0 ? Array.from(s) : ['—'];
-  });
+  // Semestres pour les boutons (libellés)
+  protected readonly semestres = computed(() =>
+    this.semestresDisponibles().map(s => s.libelle)
+  );
 
-  protected readonly semestreSelectionne = signal('');
-
-  protected readonly notesDuSemestre = computed(() => {
-    const sem = this.semestreSelectionne();
-    if (!sem || sem === '—') return this.toutesLesNotes();
-    return this.toutesLesNotes().filter(n => {
-      const s = n.evaluation?.semestre?.libelle ?? n.evaluation?.matiere?.ue?.semestre?.libelle;
-      return s === sem;
-    });
-  });
-
+  // Tableau de bord calculé depuis les bulletins du semestre sélectionné
   protected readonly tableauBord = computed(() => {
-    const notes = this.notesDuSemestre();
-    if (notes.length === 0) return null;
+    // Filtrer les bulletins sans étudiant inscrit dans une classe valide
+    const bs = this.bulletins().filter(b =>
+      b.etudiant?.inscription?.[0]?.classe?.nomClasse
+    );
+    if (!bs || bs.length === 0) return null;
 
     const reclamations = this.toutesLesReclamations();
     const reclamationsTotal = reclamations.length;
     const reclamationsTraitees = reclamations.filter(r => r.statut === 'traitee').length;
 
-    const valeurs = notes.map(n => Number(n.valeur)).filter(v => !isNaN(v));
-    const moyenneGenerale = valeurs.length
-      ? Math.round((valeurs.reduce((a, b) => a + b, 0) / valeurs.length) * 10) / 10
+    // Moyenne générale = moyenne des moyennes_generale des bulletins
+    const moyennes = bs.map(b => Number(b.moyenne_generale)).filter(v => !isNaN(v));
+    const moyenneGenerale = moyennes.length
+      ? Math.round((moyennes.reduce((a, b) => a + b, 0) / moyennes.length) * 10) / 10
       : 0;
-    const tauxReussite = valeurs.length
-      ? Math.round((valeurs.filter(v => v >= 10).length / valeurs.length) * 100)
+    const tauxReussite = moyennes.length
+      ? Math.round((moyennes.filter(v => v >= 10).length / moyennes.length) * 100)
       : 0;
-    const etudiantsEvalues = new Set(notes.map(n => n.etudiant_id)).size;
+    const etudiantsEvalues = bs.length;
 
     // Moyennes par classe
     const parClasse = new Map<string, number[]>();
-    for (const n of notes) {
-      const classe = n.etudiant?.classe?.nomClasse ?? 'Inconnue';
+    for (const b of bs) {
+      const classe = b.etudiant?.inscription?.[0]?.classe?.nomClasse ?? 'Inconnue';
       if (!parClasse.has(classe)) parClasse.set(classe, []);
-      parClasse.get(classe)!.push(Number(n.valeur));
+      parClasse.get(classe)!.push(Number(b.moyenne_generale));
     }
     const moyennesParClasse = Array.from(parClasse.entries()).map(([classe, vals]) => ({
       classe,
-      etudiants: new Set(notes.filter(n => (n.etudiant?.classe?.nomClasse ?? 'Inconnue') === classe).map(n => n.etudiant_id)).size,
+      etudiants: vals.length,
       moyenne: Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10,
     }));
 
-    // Distribution
+    // Distribution des moyennes générales
     const tranches = [
       { tranche: '0–5', min: 0, max: 5 },
       { tranche: '6–9', min: 6, max: 9 },
@@ -95,23 +103,42 @@ export class EspaceChefDepartement implements OnInit {
     ];
     const distribution = tranches.map(t => ({
       tranche: t.tranche,
-      count: valeurs.filter(v => v >= t.min && v <= t.max).length,
+      count: moyennes.filter(v => v >= t.min && v <= t.max).length,
     }));
 
-    // Moyennes par module
-    const parModule = new Map<string, number[]>();
-    for (const n of notes) {
-      const mod = n.evaluation?.matiere?.libelle ?? 'Inconnu';
-      if (!parModule.has(mod)) parModule.set(mod, []);
-      parModule.get(mod)!.push(Number(n.valeur));
+    // Moyennes par module (depuis les détails des bulletins)
+    const parModule = new Map<string, { devoirs: number[]; examens: number[]; moyennes: number[] }>();
+    for (const b of bs) {
+      for (const detail of (b.details ?? [])) {
+        for (const m of (detail.ue?.modules ?? [])) {
+          const libelle = m.libelle ?? 'Inconnu';
+          if (!parModule.has(libelle)) parModule.set(libelle, { devoirs: [], examens: [], moyennes: [] });
+          const entry = parModule.get(libelle)!;
+          if (m.mcc != null) entry.devoirs.push(Number(m.mcc));
+          if (m.examen != null) entry.examens.push(Number(m.examen));
+          if (m.moyenne_module != null) entry.moyennes.push(Number(m.moyenne_module));
+        }
+      }
     }
-    const moyennesParModule = Array.from(parModule.entries()).map(([module, vals]) => ({
+    const moyennesParModule = Array.from(parModule.entries()).map(([module, data]) => ({
       module,
-      notes: vals.length,
-      moyenne: Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10,
+      notes: data.moyennes.length,
+      moyenneDevoir: data.devoirs.length
+        ? Math.round((data.devoirs.reduce((a, b) => a + b, 0) / data.devoirs.length) * 10) / 10
+        : null,
+      moyenneExamen: data.examens.length
+        ? Math.round((data.examens.reduce((a, b) => a + b, 0) / data.examens.length) * 10) / 10
+        : null,
+      moyenne: data.moyennes.length
+        ? Math.round((data.moyennes.reduce((a, b) => a + b, 0) / data.moyennes.length) * 10) / 10
+        : 0,
     }));
 
-    return { tauxReussite, etudiantsEvalues, moyenneGenerale, reclamationsTotal, reclamationsTraitees, moyennesParClasse, distribution, moyennesParModule };
+    return {
+      tauxReussite, etudiantsEvalues, moyenneGenerale,
+      reclamationsTotal, reclamationsTraitees,
+      moyennesParClasse, distribution, moyennesParModule
+    };
   });
 
   protected readonly maxDistribution = computed(() => {
@@ -140,26 +167,82 @@ export class EspaceChefDepartement implements OnInit {
 
   ngOnInit(): void {
     this.notif.charger();
-    this.http.get<any[]>(`${this.apiUrl}/notes/toutes`, { headers: this.headers }).subscribe({
-      next: (data) => {
-        this.toutesLesNotes.set(Array.isArray(data) ? data : []);
-        const sems = this.semestres();
-        if (sems.length > 0) this.semestreSelectionne.set(sems[0]);
-      },
-      error: () => this.toutesLesNotes.set([])
-    });
-    this.http.get<any[]>(`${this.apiUrl}/reclamations`, { headers: this.headers }).subscribe({
-      next: (data) => this.toutesLesReclamations.set(Array.isArray(data) ? data : []),
-      error: () => this.toutesLesReclamations.set([])
-    });
-    this.chargerBulletins();
+    this.chargerSemestres();
+    this.chargerReclamations();
+    this.chargerProfil();
   }
 
-  private chargerBulletins(): void {
-    // Charge tous les bulletins via l'endpoint admin (semestre 1 par défaut, puis tous)
-    this.http.get<any>(`${this.apiUrl}/bulletins/semestre/1`, { headers: this.headers }).subscribe({
-      next: (res) => this.bulletins.set(res.bulletins ?? []),
-      error: () => this.bulletins.set([])
+  private chargerReclamations(): void {
+    this.http.get<any[]>(`${this.apiUrl}/reclamations/toutes`, { headers: this.headers }).subscribe({
+      next: (data) => {
+        const list = Array.isArray(data) ? data : [];
+        this.reclamations.set(list);
+        this.toutesLesReclamations.set(list);
+      },
+      error: () => {
+        this.reclamations.set([]);
+        this.toutesLesReclamations.set([]);
+      }
+    });
+  }
+
+  private chargerProfil(): void {
+    this.http.get<any>(`${this.apiUrl}/profile`, { headers: this.headers }).subscribe({
+      next: (data) => {
+        this.profil.set(data);
+        this.nomEdite = data.nom ?? '';
+        this.prenomEdite = data.prenom ?? '';
+        this.emailEdite = data.email ?? '';
+        this.telephoneEdite = data.telephone ?? '';
+      }
+    });
+  }
+
+  protected sauvegarderProfil(): void {
+    const body: any = {
+      nom: this.nomEdite,
+      prenom: this.prenomEdite,
+      email: this.emailEdite,
+      telephone: this.telephoneEdite,
+    };
+    this.http.put(`${this.apiUrl}/profile`, body, { headers: this.headers }).subscribe({
+      next: () => {
+        this.messageSuccesProfil.set('Profil mis à jour avec succès.');
+        this.messageErreurProfil.set('');
+        this.enEditionProfil.set(false);
+        this.chargerProfil();
+      },
+      error: () => {
+        this.messageErreurProfil.set('Erreur lors de la mise à jour.');
+        this.messageSuccesProfil.set('');
+      }
+    });
+  }
+
+  protected traiterReclamation(id: number, statut: string): void {
+    this.http.put(`${this.apiUrl}/reclamations/${id}`, { statut }, { headers: this.headers }).subscribe({
+      next: () => this.chargerReclamations(),
+      error: () => {}
+    });
+  }
+
+  private chargerSemestres(): void {
+    this.http.get<any[]>(`${this.apiUrl}/semestres`, { headers: this.headers }).subscribe({
+      next: (data) => {
+        const sems = Array.isArray(data) ? data : [];
+        this.semestresDisponibles.set(sems);
+        if (sems.length > 0) {
+          this.semestreSelectionne.set(sems[0]);
+          this.chargerBulletinsSemestre(sems[0].id);
+        }
+      },
+      error: () => {
+        // Fallback : semestres fixes
+        const fallback = [{ id: 1, libelle: 'Semestre 1' }, { id: 2, libelle: 'Semestre 2' }];
+        this.semestresDisponibles.set(fallback);
+        this.semestreSelectionne.set(fallback[0]);
+        this.chargerBulletinsSemestre(fallback[0].id);
+      }
     });
   }
 
@@ -170,8 +253,11 @@ export class EspaceChefDepartement implements OnInit {
     });
   }
 
-  protected selectionnerSemestre(semestre: string): void {
-    this.semestreSelectionne.set(semestre);
+  protected selectionnerSemestre(libelle: string): void {
+    const sem = this.semestresDisponibles().find(s => s.libelle === libelle);
+    if (!sem) return;
+    this.semestreSelectionne.set(sem);
+    this.chargerBulletinsSemestre(sem.id);
   }
 
   protected largeurBarre(count: number): number {

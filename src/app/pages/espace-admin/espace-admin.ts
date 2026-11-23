@@ -29,10 +29,8 @@ export class EspaceAdmin implements OnInit {
     'admin',
     'enseignant',
     'etudiant',
-    'scolarite',
     'chef_departement',
     'parent',
-    'agent_service_examen',
   ];
 
   protected recherche = '';
@@ -49,8 +47,10 @@ export class EspaceAdmin implements OnInit {
   });
 
   protected readonly repartitionRoles = computed(() => {
+    const rolesExclus = ['scolarite', 'comptable', 'agent_service_examen'];
     const map = new Map<string, number>();
     for (const c of this.comptesApi()) {
+      if (rolesExclus.includes(c.role)) continue;
       map.set(c.role, (map.get(c.role) ?? 0) + 1);
     }
     return Array.from(map.entries()).map(([role, count]) => ({ role, count }));

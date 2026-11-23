@@ -196,43 +196,136 @@
     </section>
 
     } @else {
+
+    <!-- Infos personnelles -->
     <section class="carte">
-      <h2 class="titre-carte">Mon profil</h2>
-      <div class="grille-info" style="margin-bottom:1.5rem;">
-        <div class="info-carte">
-          <p class="label-info">Matricule</p>
-          <p class="valeur-info">{{ matricule() }}</p>
-        </div>
-        <div class="info-carte">
-          <p class="label-info">Date de naissance</p>
-          <p class="valeur-info">{{ dateNaissance() }}</p>
-        </div>
-        <div class="info-carte">
-          <p class="label-info">Lieu de naissance</p>
-          <p class="valeur-info">{{ lieuNaissance() }}</p>
-        </div>
-        <div class="info-carte">
-          <p class="label-info">Filière</p>
-          <p class="valeur-info">{{ filiere() }}</p>
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+        <h2 class="titre-carte" style="margin:0;">Informations personnelles</h2>
+        @if (!profilEnEdition()) {
+        <button type="button" class="bouton-modifier" (click)="profilEnEdition.set(true)">✏ Modifier</button>
+        }
       </div>
 
       @if (!profilEnEdition()) {
-      <button type="button" class="bouton-modifier" (click)="profilEnEdition.set(true)">✏ Modifier mes informations</button>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;">
+        <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+          <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Matricule</p>
+          <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ matricule() }}</p>
+        </div>
+        <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+          <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Sexe</p>
+          <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ sexeEdite === 'M' ? 'Masculin' : sexeEdite === 'F' ? 'Féminin' : '—' }}</p>
+        </div>
+        <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+          <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Date de naissance</p>
+          <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ dateNaissance() }}</p>
+        </div>
+        <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+          <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Lieu de naissance</p>
+          <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ lieuNaissance() }}</p>
+        </div>
+        <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+          <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Téléphone</p>
+          <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ telephoneEdite || '—' }}</p>
+        </div>
+        <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+          <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Filière</p>
+          <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ filiere() }}</p>
+        </div>
+      </div>
       } @else {
-      <div class="formulaire-nouveau-compte" style="margin-top:1rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div class="champ">
-          <label>Nom</label>
-          <input type="text" [(ngModel)]="nomEdite" [ngModelOptions]="{standalone:true}" />
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Nom</label>
+          <input type="text" [(ngModel)]="nomEdite" [ngModelOptions]="{standalone:true}"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;" />
         </div>
         <div class="champ">
-          <label>Prénom</label>
-          <input type="text" [(ngModel)]="prenomEdite" [ngModelOptions]="{standalone:true}" />
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Prénom</label>
+          <input type="text" [(ngModel)]="prenomEdite" [ngModelOptions]="{standalone:true}"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;" />
         </div>
-        <div class="actions-reclamation">
-          <button type="button" class="bouton-annuler" (click)="profilEnEdition.set(false)">Annuler</button>
-          <button type="button" class="bouton-envoyer" (click)="enregistrerProfil()">Enregistrer</button>
+        <div class="champ">
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Date de naissance</label>
+          <input type="date" [(ngModel)]="dateNaissanceEditee" [ngModelOptions]="{standalone:true}"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;" />
         </div>
+        <div class="champ">
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Lieu de naissance</label>
+          <input type="text" [(ngModel)]="lieuNaissanceEdite" [ngModelOptions]="{standalone:true}"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;" />
+        </div>
+        <div class="champ">
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Sexe</label>
+          <select [(ngModel)]="sexeEdite" [ngModelOptions]="{standalone:true}"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;background:white;">
+            <option value="">— Sélectionner —</option>
+            <option value="M">Masculin</option>
+            <option value="F">Féminin</option>
+          </select>
+        </div>
+        <div class="champ">
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Téléphone</label>
+          <input type="tel" [(ngModel)]="telephoneEdite" [ngModelOptions]="{standalone:true}"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;" />
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1.25rem;">
+        <button type="button" class="bouton-annuler" (click)="profilEnEdition.set(false)">Annuler</button>
+        <button type="button" class="bouton-envoyer" (click)="enregistrerProfil()">Enregistrer</button>
+      </div>
+      }
+    </section>
+
+    <!-- Sécurité du compte -->
+    <section class="carte" style="margin-top:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+        <h2 class="titre-carte" style="margin:0;">Sécurité du compte</h2>
+        @if (!securiteEnEdition()) {
+        <button type="button" class="bouton-modifier" (click)="securiteEnEdition.set(true)">🔒 Modifier</button>
+        }
+      </div>
+
+      @if (!securiteEnEdition()) {
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;">
+        <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+          <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Adresse e-mail</p>
+          <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ emailActuel() || '—' }}</p>
+        </div>
+        <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+          <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Mot de passe</p>
+          <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">••••••••</p>
+        </div>
+      </div>
+      } @else {
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="champ" style="grid-column:1/-1;">
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Nouvel e-mail</label>
+          <input type="email" [(ngModel)]="emailEdite" [ngModelOptions]="{standalone:true}"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;" />
+        </div>
+        <div class="champ">
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Nouveau mot de passe</label>
+          <input type="password" [(ngModel)]="motDePasseEdite" [ngModelOptions]="{standalone:true}"
+            placeholder="Laisser vide pour ne pas changer"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;" />
+        </div>
+        <div class="champ">
+          <label style="font-size:0.82rem;font-weight:600;color:#374151;margin-bottom:0.3rem;display:block;">Confirmer le mot de passe</label>
+          <input type="password" [(ngModel)]="motDePasseConfirme" [ngModelOptions]="{standalone:true}"
+            placeholder="Répéter le nouveau mot de passe"
+            style="width:100%;padding:0.55rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.9rem;" />
+        </div>
+      </div>
+      @if (securiteErreur()) {
+      <p style="color:#b91c1c;font-size:0.85rem;margin-top:0.5rem;">{{ securiteErreur() }}</p>
+      }
+      @if (securiteSucces()) {
+      <p style="color:#166534;font-size:0.85rem;margin-top:0.5rem;">✓ Informations mises à jour.</p>
+      }
+      <div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:1.25rem;">
+        <button type="button" class="bouton-annuler" (click)="securiteEnEdition.set(false)">Annuler</button>
+        <button type="button" class="bouton-envoyer" (click)="enregistrerSecurite()">Enregistrer</button>
       </div>
       }
     </section>

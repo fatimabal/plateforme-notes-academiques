@@ -42,7 +42,38 @@
   </header>
 
   <main class="contenu">
-    <h1 class="titre-page">Tableau de bord pédagogique</h1>
+    <h1 class="titre-page">Espace Chef de département</h1>
+
+    <!-- Onglets -->
+    <div style="display:flex;gap:0.5rem;margin-bottom:2rem;border-bottom:2px solid #e5e7eb;padding-bottom:0;">
+      <button type="button"
+        [style.border-bottom]="ongletActif() === 'tableau-bord' ? '3px solid #1a56db' : '3px solid transparent'"
+        [style.color]="ongletActif() === 'tableau-bord' ? '#1a56db' : '#6b7280'"
+        style="background:none;border:none;border-bottom:3px solid transparent;padding:0.6rem 1.2rem;font-weight:600;cursor:pointer;font-size:0.95rem;"
+        (click)="ongletActif.set('tableau-bord')">
+        Tableau de bord
+      </button>
+      <button type="button"
+        [style.border-bottom]="ongletActif() === 'reclamations' ? '3px solid #1a56db' : '3px solid transparent'"
+        [style.color]="ongletActif() === 'reclamations' ? '#1a56db' : '#6b7280'"
+        style="background:none;border:none;border-bottom:3px solid transparent;padding:0.6rem 1.2rem;font-weight:600;cursor:pointer;font-size:0.95rem;"
+        (click)="ongletActif.set('reclamations')">
+        Réclamations
+        @if (reclamations().length > 0) {
+          <span style="background:#ef4444;color:white;border-radius:999px;padding:1px 7px;font-size:0.75rem;margin-left:6px;">{{ reclamations().length }}</span>
+        }
+      </button>
+      <button type="button"
+        [style.border-bottom]="ongletActif() === 'profil' ? '3px solid #1a56db' : '3px solid transparent'"
+        [style.color]="ongletActif() === 'profil' ? '#1a56db' : '#6b7280'"
+        style="background:none;border:none;border-bottom:3px solid transparent;padding:0.6rem 1.2rem;font-weight:600;cursor:pointer;font-size:0.95rem;"
+        (click)="ongletActif.set('profil')">
+        Mon profil
+      </button>
+    </div>
+
+    <!-- ===== ONGLET TABLEAU DE BORD ===== -->
+    @if (ongletActif() === 'tableau-bord') {
 
     <div class="ligne-semestres">
       <span class="label-semestres">Semestre :</span>
@@ -50,7 +81,7 @@
         <button
           type="button"
           class="semestre"
-          [class.semestre-actif]="s === semestreSelectionne()"
+          [class.semestre-actif]="s === semestreSelectionne()?.libelle"
           (click)="selectionnerSemestre(s)"
         >
           {{ s }}
@@ -124,7 +155,8 @@
             <thead>
               <tr>
                 <th>Module</th>
-                <th>Notes</th>
+                <th>Devoir (40%)</th>
+                <th>Examen (60%)</th>
                 <th>Moyenne</th>
               </tr>
             </thead>
@@ -132,7 +164,8 @@
               @for (m of t.moyennesParModule; track m.module) {
                 <tr>
                   <td>{{ m.module }}</td>
-                  <td>{{ m.notes }}</td>
+                  <td>{{ m.moyenneDevoir != null ? m.moyenneDevoir + '/20' : '—' }}</td>
+                  <td>{{ m.moyenneExamen != null ? m.moyenneExamen + '/20' : '—' }}</td>
                   <td class="moyenne">{{ m.moyenne }}/20</td>
                 </tr>
               }
@@ -204,7 +237,116 @@
         </tbody>
       </table>
     </section>
-    }
+    } <!-- fin @if bulletins -->
+
+    } <!-- fin onglet tableau de bord -->
+
+    <!-- ===== ONGLET RÉCLAMATIONS ===== -->
+    @if (ongletActif() === 'reclamations') {
+    <section class="carte">
+      <h2 class="titre-carte">Réclamations des étudiants</h2>
+      @if (reclamations().length === 0) {
+        <p class="etat-vide">Aucune réclamation pour le moment.</p>
+      } @else {
+        <table class="table-donnees">
+          <thead>
+            <tr>
+              <th>Étudiant</th>
+              <th>Matière</th>
+              <th>Motif</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of reclamations(); track r.id) {
+              <tr>
+                <td class="nom-fort">{{ r.etudiant?.user ? (r.etudiant.user.prenom + ' ' + r.etudiant.user.nom) : '—' }}</td>
+                <td>{{ r.note?.matiere?.libelle ?? '—' }}</td>
+                <td>{{ r.motif ?? '—' }}</td>
+                <td>
+                  @if (r.statut === 'en_attente') {
+                    <span style="color:#d97706;font-weight:600;">En attente</span>
+                  } @else if (r.statut === 'traitee') {
+                    <span style="color:#166534;font-weight:600;">Traitée</span>
+                  } @else if (r.statut === 'relancee') {
+                    <span style="color:#1a56db;font-weight:600;">Relancée</span>
+                  } @else {
+                    <span>{{ r.statut }}</span>
+                  }
+                </td>
+                <td>
+                  @if (r.statut !== 'traitee') {
+                    <button type="button" class="bouton-reclamer"
+                      (click)="traiterReclamation(r.id, 'traitee')">
+                      Marquer traitée
+                    </button>
+                  } @else {
+                    <span style="color:#9ca3af;font-size:0.85rem;">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+    } <!-- fin onglet réclamations -->
+
+    <!-- ===== ONGLET MON PROFIL ===== -->
+    @if (ongletActif() === 'profil') {
+    <section class="carte" style="max-width:600px;">
+      <h2 class="titre-carte">Mon profil</h2>
+
+      @if (messageSuccesProfil()) {
+        <p style="color:#166534;background:#dcfce7;padding:0.6rem 1rem;border-radius:6px;margin-bottom:1rem;">{{ messageSuccesProfil() }}</p>
+      }
+      @if (messageErreurProfil()) {
+        <p style="color:#b91c1c;background:#fee2e2;padding:0.6rem 1rem;border-radius:6px;margin-bottom:1rem;">{{ messageErreurProfil() }}</p>
+      }
+
+      @if (!enEditionProfil()) {
+        <div style="display:grid;gap:0.75rem;font-size:0.95rem;">
+          <div><strong>Nom :</strong> {{ profil()?.nom ?? '—' }}</div>
+          <div><strong>Prénom :</strong> {{ profil()?.prenom ?? '—' }}</div>
+          <div><strong>Email :</strong> {{ profil()?.email ?? '—' }}</div>
+          <div><strong>Téléphone :</strong> {{ profil()?.telephone ?? '—' }}</div>
+        </div>
+        <button type="button" class="bouton-principal" style="margin-top:1.5rem;"
+          (click)="enEditionProfil.set(true)">
+          Modifier
+        </button>
+      } @else {
+        <div style="display:grid;gap:1rem;">
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Nom</label>
+            <input type="text" [(ngModel)]="nomEdite"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Prénom</label>
+            <input type="text" [(ngModel)]="prenomEdite"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Email</label>
+            <input type="email" [(ngModel)]="emailEdite"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Téléphone</label>
+            <input type="text" [(ngModel)]="telephoneEdite"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+          <button type="button" class="bouton-principal" (click)="sauvegarderProfil()">Enregistrer</button>
+          <button type="button" class="bouton-reset" (click)="enEditionProfil.set(false)">Annuler</button>
+        </div>
+      }
+    </section>
+    } <!-- fin onglet profil -->
+
   </main>
 
   <!-- Modal bulletin ISI -->
