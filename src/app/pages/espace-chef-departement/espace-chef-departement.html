@@ -306,18 +306,34 @@
       }
 
       @if (!enEditionProfil()) {
-        <div style="display:grid;gap:0.75rem;font-size:0.95rem;">
+        <!-- Informations personnelles -->
+        <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0 0 0.5rem;">Informations personnelles</p>
+        <div style="display:grid;gap:0.75rem;font-size:0.95rem;margin-bottom:1.5rem;">
           <div><strong>Nom :</strong> {{ profil()?.nom ?? '—' }}</div>
           <div><strong>Prénom :</strong> {{ profil()?.prenom ?? '—' }}</div>
           <div><strong>Email :</strong> {{ profil()?.email ?? '—' }}</div>
           <div><strong>Téléphone :</strong> {{ profil()?.telephone ?? '—' }}</div>
         </div>
+
+        @if (profil()?.chefDepartement) {
+          <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0 0 0.5rem;border-top:1px solid #e5e7eb;padding-top:1rem;">Informations département</p>
+          <div style="display:grid;gap:0.75rem;font-size:0.95rem;">
+            <div><strong>Département :</strong> {{ profil()?.chefDepartement?.departement ?? '—' }}</div>
+            <div><strong>Spécialité :</strong> {{ profil()?.chefDepartement?.specialite ?? '—' }}</div>
+            <div><strong>Grade :</strong> {{ profil()?.chefDepartement?.grade ?? '—' }}</div>
+            <div><strong>Mandat :</strong> {{ profil()?.chefDepartement?.mandat ?? '—' }}</div>
+            <div><strong>Date de début :</strong> {{ profil()?.chefDepartement?.dateDebut ?? '—' }}</div>
+            <div><strong>Date de fin :</strong> {{ profil()?.chefDepartement?.dateFin ?? '—' }}</div>
+          </div>
+        }
+
         <button type="button" class="bouton-principal" style="margin-top:1.5rem;"
           (click)="enEditionProfil.set(true)">
           Modifier
         </button>
       } @else {
         <div style="display:grid;gap:1rem;">
+          <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0;">Informations personnelles</p>
           <div>
             <label style="font-size:0.85rem;font-weight:600;color:#374151;">Nom</label>
             <input type="text" [(ngModel)]="nomEdite"
@@ -338,6 +354,35 @@
             <input type="text" [(ngModel)]="telephoneEdite"
               style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
           </div>
+
+          @if (profil()?.chefDepartement) {
+            <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0.5rem 0 0;border-top:1px solid #e5e7eb;padding-top:1rem;">Informations département</p>
+            <div>
+              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Spécialité</label>
+              <input type="text" [(ngModel)]="specialiteEditee"
+                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+            </div>
+            <div>
+              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Grade</label>
+              <input type="text" [(ngModel)]="gradeEdite"
+                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+            </div>
+            <div>
+              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Mandat</label>
+              <input type="text" [(ngModel)]="mandatEdite"
+                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+            </div>
+            <div>
+              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Date de début</label>
+              <input type="date" [(ngModel)]="dateDebutEditee"
+                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+            </div>
+            <div>
+              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Date de fin</label>
+              <input type="date" [(ngModel)]="dateFinEditee"
+                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+            </div>
+          }
         </div>
         <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
           <button type="button" class="bouton-principal" (click)="sauvegarderProfil()">Enregistrer</button>

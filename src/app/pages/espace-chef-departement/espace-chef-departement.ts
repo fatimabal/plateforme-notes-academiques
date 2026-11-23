@@ -46,6 +46,11 @@ export class EspaceChefDepartement implements OnInit {
   protected prenomEdite = '';
   protected emailEdite = '';
   protected telephoneEdite = '';
+  protected specialiteEditee = '';
+  protected gradeEdite = '';
+  protected mandatEdite = '';
+  protected dateDebutEditee = '';
+  protected dateFinEditee = '';
   protected readonly messageSuccesProfil = signal('');
   protected readonly messageErreurProfil = signal('');
 
@@ -194,6 +199,11 @@ export class EspaceChefDepartement implements OnInit {
         this.prenomEdite = data.prenom ?? '';
         this.emailEdite = data.email ?? '';
         this.telephoneEdite = data.telephone ?? '';
+        this.specialiteEditee = data.chefDepartement?.specialite ?? '';
+        this.gradeEdite = data.chefDepartement?.grade ?? '';
+        this.mandatEdite = data.chefDepartement?.mandat ?? '';
+        this.dateDebutEditee = data.chefDepartement?.dateDebut ?? '';
+        this.dateFinEditee = data.chefDepartement?.dateFin ?? '';
       }
     });
   }
@@ -204,6 +214,11 @@ export class EspaceChefDepartement implements OnInit {
       prenom: this.prenomEdite,
       email: this.emailEdite,
       telephone: this.telephoneEdite,
+      specialite: this.specialiteEditee,
+      grade: this.gradeEdite,
+      mandat: this.mandatEdite,
+      dateDebut: this.dateDebutEditee,
+      dateFin: this.dateFinEditee,
     };
     this.http.put(`${this.apiUrl}/profile`, body, { headers: this.headers }).subscribe({
       next: () => {
