@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../core/notification.service';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const SEUIL_DIFFICULTE = 13;
 
@@ -22,6 +24,11 @@ export class EspaceChefDepartement implements OnInit {
 
   private readonly toutesLesNotes = signal<any[]>([]);
   private readonly toutesLesReclamations = signal<any[]>([]);
+
+  // Bulletins
+  protected readonly bulletins = signal<any[]>([]);
+  protected readonly bulletinVu = signal<any>(null);
+  protected readonly pdfEnCours = signal(false);
 
   private get headers(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -145,6 +152,22 @@ export class EspaceChefDepartement implements OnInit {
       next: (data) => this.toutesLesReclamations.set(Array.isArray(data) ? data : []),
       error: () => this.toutesLesReclamations.set([])
     });
+    this.chargerBulletins();
+  }
+
+  private chargerBulletins(): void {
+    // Charge tous les bulletins via l'endpoint admin (semestre 1 par défaut, puis tous)
+    this.http.get<any>(`${this.apiUrl}/bulletins/semestre/1`, { headers: this.headers }).subscribe({
+      next: (res) => this.bulletins.set(res.bulletins ?? []),
+      error: () => this.bulletins.set([])
+    });
+  }
+
+  protected chargerBulletinsSemestre(semestreId: number): void {
+    this.http.get<any>(`${this.apiUrl}/bulletins/semestre/${semestreId}`, { headers: this.headers }).subscribe({
+      next: (res) => this.bulletins.set(res.bulletins ?? []),
+      error: () => this.bulletins.set([])
+    });
   }
 
   protected selectionnerSemestre(semestre: string): void {
@@ -153,5 +176,25 @@ export class EspaceChefDepartement implements OnInit {
 
   protected largeurBarre(count: number): number {
     return (count / this.maxDistribution()) * 100;
+  }
+
+  protected async telechargerPDF(): Promise<void> {
+    const element = document.getElementById('contenu-bulletin-chef');
+    if (!element) return;
+    this.pdfEnCours.set(true);
+    try {
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const b = this.bulletinVu();
+      const nom = b?.etudiant?.user ? `${b.etudiant.user.prenom}_${b.etudiant.user.nom}` : 'bulletin';
+      const semestre = b?.semestre?.libelle ?? 'semestre';
+      pdf.save(`bulletin_${nom}_${semestre}.pdf`.replace(/\s+/g, '_'));
+    } finally {
+      this.pdfEnCours.set(false);
+    }
   }
 }

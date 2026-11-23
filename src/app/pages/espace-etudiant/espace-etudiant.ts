@@ -4,6 +4,8 @@ import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NotificationService } from '../../core/notification.service';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-espace-etudiant',
@@ -39,7 +41,9 @@ export class EspaceEtudiant implements OnInit {
   // Bulletin
   protected readonly bulletinOuvert = signal(false);
   protected readonly bulletinData = signal<any>(null);
+  protected readonly bulletinsCache = signal<any[]>([]);
   protected readonly bulletinChargement = signal(false);
+  protected readonly pdfEnCours = signal(false);
 
   // Réclamations
   protected readonly reclamationOuverte = signal<string | null>(null);
@@ -87,6 +91,13 @@ export class EspaceEtudiant implements OnInit {
   });
 
   protected readonly moyenneSemestre = computed(() => {
+    // Si un bulletin existe pour ce semestre, utiliser sa moyenne_generale
+    const code = this.semestreSelectionneCode();
+    const bulletin = this.bulletinsCache().find(b => b.semestre?.libelle === code);
+    if (bulletin?.moyenne_generale != null) {
+      return bulletin.moyenne_generale;
+    }
+    // Sinon calculer depuis les notes
     const mods = this.modulesAffiches();
     if (mods.length === 0) return null;
     const total = mods.reduce((s, m) => s + m.moyenne, 0);
@@ -96,12 +107,10 @@ export class EspaceEtudiant implements OnInit {
   ngOnInit(): void {
     this.notif.charger();
 
-    // Nom depuis localStorage
     const prenom = localStorage.getItem('prenom') ?? '';
     const nom = localStorage.getItem('nom') ?? '';
     this.nomEtudiant.set(`${prenom} ${nom}`.trim() || 'Étudiant');
 
-    // Charger le profil (matricule, classe, infos personnelles)
     this.http.get<any>(`${this.apiUrl}/profile`, { headers: this.headers }).subscribe({
       next: (data) => {
         this.matricule.set(data.etudiant?.matricule ?? '—');
@@ -115,7 +124,6 @@ export class EspaceEtudiant implements OnInit {
       error: () => { }
     });
 
-    // Charger les semestres
     this.http.get<any[]>(`${this.apiUrl}/semestres`, { headers: this.headers }).subscribe({
       next: (data) => {
         this.semestresApi.set(Array.isArray(data) ? data : []);
@@ -127,13 +135,18 @@ export class EspaceEtudiant implements OnInit {
       error: () => { }
     });
 
-    // Charger les notes
     this.http.get<any>(`${this.apiUrl}/notes`, { headers: this.headers }).subscribe({
       next: (data) => {
         const notes = Array.isArray(data) ? data : (data?.notes ?? []);
         this.notesApi.set(notes);
       },
       error: () => this.notesApi.set([])
+    });
+
+    // Pré-chargement des bulletins pour la moyenne
+    this.http.get<any>(`${this.apiUrl}/bulletins/mes-bulletins`, { headers: this.headers }).subscribe({
+      next: (data) => this.bulletinsCache.set(data.bulletins ?? []),
+      error: () => {}
     });
   }
 
@@ -203,7 +216,6 @@ export class EspaceEtudiant implements OnInit {
         localStorage.setItem('nom', this.nomEdite);
         localStorage.setItem('prenom', this.prenomEdite);
         this.profilEnEdition.set(false);
-        // Recharger le profil pour mettre à jour les infos
         this.http.get<any>(`${this.apiUrl}/profile`, { headers: this.headers }).subscribe({
           next: (data) => {
             this.matricule.set(data.etudiant?.matricule ?? '—');
@@ -218,6 +230,7 @@ export class EspaceEtudiant implements OnInit {
       error: () => { }
     });
   }
+
   protected chargerReclamations(): void {
     this.http.get<any[]>(`${this.apiUrl}/reclamations/mes-reclamations`, { headers: this.headers }).subscribe({
       next: (data) => this.mesReclamations.set(Array.isArray(data) ? data : []),
@@ -225,45 +238,61 @@ export class EspaceEtudiant implements OnInit {
     });
   }
 
-
   protected relancerReclamation(id: number): void {
     this.http.post(`${this.apiUrl}/reclamations/${id}/relancer`, {}, { headers: this.headers }).subscribe({
       next: () => this.chargerReclamations(),
       error: (e) => console.error(e)
     });
   }
-protected voirBulletin(): void {
-  const semestreCode = this.semestreSelectionneCode();
-  console.log('voirBulletin appelé, semestreCode:', semestreCode);
-  this.bulletinChargement.set(true);
-  this.bulletinOuvert.set(true);
-  this.bulletinData.set(null);
 
-  this.http.get<any>(`${this.apiUrl}/bulletins/mes-bulletins`, { headers: this.headers })
-    .subscribe({
-      next: (data) => {
-        console.log('bulletins reçus:', data);
-        const bulletins = data.bulletins ?? [];
-        let bulletin = null;
-        if (semestreCode) {
-          bulletin = bulletins.find((b: any) => b.semestre?.libelle === semestreCode);
+  protected voirBulletin(): void {
+    const semestreCode = this.semestreSelectionneCode();
+    this.bulletinChargement.set(true);
+    this.bulletinOuvert.set(true);
+    this.bulletinData.set(null);
+
+    this.http.get<any>(`${this.apiUrl}/bulletins/mes-bulletins`, { headers: this.headers })
+      .subscribe({
+        next: (data) => {
+          const bulletins = data.bulletins ?? [];
+          let bulletin = null;
+          if (semestreCode) {
+            bulletin = bulletins.find((b: any) => b.semestre?.libelle === semestreCode);
+          }
+          if (!bulletin && bulletins.length > 0) {
+            bulletin = bulletins[0];
+          }
+          this.bulletinData.set(bulletin ?? null);
+          this.bulletinChargement.set(false);
+        },
+        error: () => {
+          this.bulletinData.set(null);
+          this.bulletinChargement.set(false);
         }
-        if (!bulletin && bulletins.length > 0) {
-          bulletin = bulletins[0];
-        }
-        console.log('bulletin sélectionné:', bulletin);
-        this.bulletinData.set(bulletin ?? null);
-        this.bulletinChargement.set(false);
-      },
-      error: (e) => {
-        console.log('erreur:', e);
-        this.bulletinData.set(null);
-        this.bulletinChargement.set(false);
-      }
-    });
-}
-protected fermerBulletin(): void {
-  this.bulletinOuvert.set(false);
-  this.bulletinData.set(null);
-}
+      });
+  }
+
+  protected fermerBulletin(): void {
+    this.bulletinOuvert.set(false);
+    this.bulletinData.set(null);
+  }
+
+  protected async telechargerPDF(): Promise<void> {
+    const element = document.getElementById('contenu-bulletin');
+    if (!element) return;
+    this.pdfEnCours.set(true);
+    try {
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const nom = this.nomEtudiant() || 'bulletin';
+      const semestre = this.bulletinData()?.semestre?.libelle ?? 'semestre';
+      pdf.save(`bulletin_${nom}_${semestre}.pdf`.replace(/\s+/g, '_'));
+    } finally {
+      this.pdfEnCours.set(false);
+    }
+  }
 }

@@ -4,6 +4,9 @@ import { Component, computed, effect, inject, signal, OnInit } from '@angular/co
 import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../core/notification.service';
 import { RouterLink } from '@angular/router';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
 @Component({
   selector: 'app-espace-admin',
   standalone: true,
@@ -18,9 +21,9 @@ export class EspaceAdmin implements OnInit {
 
   protected readonly nomActeur = `${localStorage.getItem('prenom') ?? ''} ${localStorage.getItem('nom') ?? ''}`.trim() || 'Administrateur';
 
-  // ── Comptes 
+  // ── Comptes
   private readonly comptesApi = signal<any[]>([]);
-  protected readonly comptes = this.comptesApi; // alias pour le HTML (data.comptes())
+  protected readonly comptes = this.comptesApi;
 
   protected readonly roles = [
     'admin',
@@ -52,6 +55,7 @@ export class EspaceAdmin implements OnInit {
     }
     return Array.from(map.entries()).map(([role, count]) => ({ role, count }));
   });
+
   protected readonly classesEtudiants = computed(() => {
     const etudiants = this.comptesApi().filter(c => c.role === 'etudiant');
     const q = this.recherche.toLowerCase();
@@ -94,11 +98,11 @@ export class EspaceAdmin implements OnInit {
   protected detailsEdites = '';
   protected readonly compteReinitialise = signal<number | null>(null);
 
-  //  Journal d'audit 
+  //  Journal d'audit
   private readonly journalApi = signal<any[]>([]);
-  protected readonly journal = this.journalApi; // alias pour data.journal()
+  protected readonly journal = this.journalApi;
 
-  //  Données de référence 
+  //  Données de référence
   protected readonly onglets = ['Départements', 'Filières', 'Classes', 'Semestres', 'UE', 'Modules'];
   protected readonly ongletActif = signal('Départements');
 
@@ -136,7 +140,7 @@ export class EspaceAdmin implements OnInit {
   protected rechercheEnseignant = '';
   protected enseignantsSuggestions: any[] = [];
   protected enseignantsSelectionnes: any[] = [];
-  //  data proxy (pour compatibilité avec le HTML existant) 
+  //  data proxy
   protected readonly data = {
     nomActeur: this.nomActeur,
     comptes: this.comptesApi,
@@ -145,15 +149,18 @@ export class EspaceAdmin implements OnInit {
 
   protected detailsUtilisateur = signal<any>(null);
   // ── Génération des bulletins ──
-protected semestreSelectionneGeneration = signal<number | string>('');
-protected generationEnCours = signal(false);
-protected generationResultat = signal<any>(null);
-protected generationErreur = signal<string | null>(null);
-protected bulletinsExistants = signal<any[]>([]);
-protected bulletinVu = signal<any>(null); 
-protected voirDetails(c: any): void {
-  this.detailsUtilisateur.set(c);
-}
+  protected semestreSelectionneGeneration = signal<number | string>('');
+  protected generationEnCours = signal(false);
+  protected generationResultat = signal<any>(null);
+  protected generationErreur = signal<string | null>(null);
+  protected bulletinsExistants = signal<any[]>([]);
+  protected bulletinVu = signal<any>(null);
+  protected pdfEnCours = signal(false);
+
+  protected voirDetails(c: any): void {
+    this.detailsUtilisateur.set(c);
+  }
+
   //  Init
   constructor() {
     effect(() => {
@@ -168,18 +175,19 @@ protected voirDetails(c: any): void {
     });
   }
 
- ngOnInit(): void {
-  this.chargerTout();
-  const saved = sessionStorage.getItem('admin_semestre_generation');
-  console.log('saved:', saved);
-  if (saved) {
-    this.semestreSelectionneGeneration.set(saved);
-    setTimeout(() => {
-      console.log('appel verifier avec:', this.semestreSelectionneGeneration());
-      this.verifierBulletinsExistants();
-    }, 1000);
+  ngOnInit(): void {
+    this.chargerTout();
+    const saved = sessionStorage.getItem('admin_semestre_generation');
+    console.log('saved:', saved);
+    if (saved) {
+      this.semestreSelectionneGeneration.set(saved);
+      setTimeout(() => {
+        console.log('appel verifier avec:', this.semestreSelectionneGeneration());
+        this.verifierBulletinsExistants();
+      }, 1000);
+    }
   }
-}
+
   private headers(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
   }
@@ -200,7 +208,6 @@ protected voirDetails(c: any): void {
     this.http.get<any>(`${this.apiUrl}/utilisateurs`, { headers: this.headers() })
       .subscribe({
         next: (data) => {
-          // gère les deux formats : tableau direct ou { users: [...] }
           const liste = Array.isArray(data) ? data : (data.users ?? data.data ?? []);
           this.comptesApi.set(liste);
         },
@@ -280,7 +287,7 @@ protected voirDetails(c: any): void {
       });
   }
 
-  //  Gestion comptes 
+  //  Gestion comptes
   protected basculerFormulaire(): void {
     this.formulaireOuvert.update(v => !v);
     this.nouveauNom = '';
@@ -376,24 +383,23 @@ protected voirDetails(c: any): void {
         error: () => { },
       });
   }
+
   protected toggleActif(c: any): void {
     this.http.put(`${this.apiUrl}/utilisateurs/${c.id}/toggle-actif`, {}, { headers: this.headers() })
       .subscribe({
-        next: (res: any) => {
-          c.actif = res.actif;
-        },
+        next: (res: any) => { c.actif = res.actif; },
         error: () => { },
       });
   }
 
-  //  Journal 
+  //  Journal
   protected purgerJournal(): void {
     if (!confirm('Purger tout le journal d\'audit ?')) return;
     this.http.delete(`${this.apiUrl}/journal`, { headers: this.headers() })
       .subscribe({ next: () => this.journalApi.set([]), error: () => { } });
   }
 
-  //  Données de référence 
+  //  Données de référence
   protected ajouterRef(): void {
     const onglet = this.ongletActif();
     let url = '';
@@ -475,6 +481,7 @@ protected voirDetails(c: any): void {
     else if (onglet === 'UE') { this.chargerUes(); this.chargerSemestres(); }
     else if (onglet === 'Modules') { this.chargerModules(); this.chargerUes(); }
   }
+
   protected rechercherEtudiant(): void {
     const q = this.rechercheEtudiant.toLowerCase();
     if (!q) { this.etudiantsSuggestions = []; return; }
@@ -495,6 +502,7 @@ protected voirDetails(c: any): void {
   protected retirerEtudiant(e: any): void {
     this.etudiantsSelectionnes = this.etudiantsSelectionnes.filter(x => x.id !== e.id);
   }
+
   protected ouvrirAffectation(m: any): void {
     this.moduleAffecter = m;
     this.enseignantsSelectionnes = m.enseignants ? [...m.enseignants] : [];
@@ -547,50 +555,70 @@ protected voirDetails(c: any): void {
       error: (e) => alert('Erreur : ' + JSON.stringify(e.error?.message ?? e.message)),
     });
   }
+
   protected saveSemestreSession(id: any): void {
-  sessionStorage.setItem('admin_semestre_generation', String(id));
-}
-
-protected clearSemestreSession(): void {
-  sessionStorage.removeItem('admin_semestre_generation');
-}
-  protected genererBulletins(): void {
-  const semestreId = this.semestreSelectionneGeneration();
-  if (!semestreId) { this.generationErreur.set('Veuillez sélectionner un semestre.'); return; }
-  this.generationEnCours.set(true);
-  this.generationResultat.set(null);
-  this.generationErreur.set(null);
-  this.http.post<any>(`${this.apiUrl}/bulletins/generer-masse`, { semestre_id: semestreId }, { headers: this.headers() })
-    .subscribe({
-      next: (res) => { this.generationEnCours.set(false); this.generationResultat.set(res); this.verifierBulletinsExistants(); },
-      error: (e) => { this.generationEnCours.set(false); this.generationErreur.set(e.error?.message ?? 'Erreur.'); }
-    });
-}
-
-protected verifierBulletinsExistants(): void {
-  const semestreId = this.semestreSelectionneGeneration();
-  console.log('verifier appelé avec semestreId:', semestreId);
-  if (!semestreId) return;
-  this.http.get<any>(`${this.apiUrl}/bulletins/semestre/${semestreId}`, { headers: this.headers() })
-    .subscribe({
-      next: (res) => {
-        console.log('bulletins reçus:', res.bulletins?.length);
-        this.bulletinsExistants.set(res.bulletins ?? []);
-      },
-      error: (e) => { console.log('erreur:', e); this.bulletinsExistants.set([]); }
-    });
-}
-
-protected voirBulletinAdmin(r: any): void {
-  // Chercher le bulletin complet dans bulletinsExistants
-  const bulletin = this.bulletinsExistants().find(
-    (b: any) => (b.etudiant?.user?.prenom + ' ' + b.etudiant?.user?.nom).trim() === r.etudiant
-  );
-  if (bulletin) {
-    this.bulletinVu.set(bulletin);
-  } else {
-    // Fallback : afficher le résumé
-    this.bulletinVu.set(r);
+    sessionStorage.setItem('admin_semestre_generation', String(id));
   }
-}
+
+  protected clearSemestreSession(): void {
+    sessionStorage.removeItem('admin_semestre_generation');
+  }
+
+  protected genererBulletins(): void {
+    const semestreId = this.semestreSelectionneGeneration();
+    if (!semestreId) { this.generationErreur.set('Veuillez sélectionner un semestre.'); return; }
+    this.generationEnCours.set(true);
+    this.generationResultat.set(null);
+    this.generationErreur.set(null);
+    this.http.post<any>(`${this.apiUrl}/bulletins/generer-masse`, { semestre_id: semestreId }, { headers: this.headers() })
+      .subscribe({
+        next: (res) => { this.generationEnCours.set(false); this.generationResultat.set(res); this.verifierBulletinsExistants(); },
+        error: (e) => { this.generationEnCours.set(false); this.generationErreur.set(e.error?.message ?? 'Erreur.'); }
+      });
+  }
+
+  protected verifierBulletinsExistants(): void {
+    const semestreId = this.semestreSelectionneGeneration();
+    console.log('verifier appelé avec semestreId:', semestreId);
+    if (!semestreId) return;
+    this.http.get<any>(`${this.apiUrl}/bulletins/semestre/${semestreId}`, { headers: this.headers() })
+      .subscribe({
+        next: (res) => {
+          console.log('bulletins reçus:', res.bulletins?.length);
+          this.bulletinsExistants.set(res.bulletins ?? []);
+        },
+        error: (e) => { console.log('erreur:', e); this.bulletinsExistants.set([]); }
+      });
+  }
+
+  protected voirBulletinAdmin(r: any): void {
+    const bulletin = this.bulletinsExistants().find(
+      (b: any) => (b.etudiant?.user?.prenom + ' ' + b.etudiant?.user?.nom).trim() === r.etudiant
+    );
+    if (bulletin) {
+      this.bulletinVu.set(bulletin);
+    } else {
+      this.bulletinVu.set(r);
+    }
+  }
+
+  protected async telechargerPDF(): Promise<void> {
+    const element = document.getElementById('contenu-bulletin-admin');
+    if (!element) return;
+    this.pdfEnCours.set(true);
+    try {
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const b = this.bulletinVu();
+      const nom = b?.etudiant?.user ? `${b.etudiant.user.prenom}_${b.etudiant.user.nom}` : 'bulletin';
+      const semestre = b?.semestre?.libelle ?? 'semestre';
+      pdf.save(`bulletin_${nom}_${semestre}.pdf`.replace(/\s+/g, '_'));
+    } finally {
+      this.pdfEnCours.set(false);
+    }
+  }
 }

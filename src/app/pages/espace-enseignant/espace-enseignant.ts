@@ -22,8 +22,7 @@ export class EspaceEnseignant implements OnInit {
     `${localStorage.getItem('prenom') ?? ''} ${localStorage.getItem('nom') ?? ''}`.trim() || 'Enseignant';
 
   // Onglets
-  protected readonly ongletActif = signal<'tableau' | 'profil'>('tableau');
-
+  protected readonly ongletActif = signal<'notes' | 'reclamations' | 'profil'>('notes');
   // Profil
   protected readonly profilNom = signal('');
   protected readonly profilPrenom = signal('');
@@ -41,7 +40,7 @@ export class EspaceEnseignant implements OnInit {
   protected etudiants = signal<any[]>([]);
   protected readonly typesEvaluation = ['Devoir', 'Examen', 'TP', 'Projet'];
   protected semestres = signal<any[]>([]);
-
+  protected readonly mesReclamations = signal<any[]>([]);
   protected readonly etudiantsFiltres = computed(() => {
     const classeId = this.classeSelectionnee();
     let liste = this.etudiants();
@@ -60,8 +59,7 @@ export class EspaceEnseignant implements OnInit {
     this.toutesLesNotes().filter(n => n.statut === 'valide' || n.statut === 'validee')
   );
   protected readonly publiees = computed(() =>
-    this.toutesLesNotes().filter(n => n.statut === 'publie' || n.statut === 'publiee')
-  );
+this.toutesLesNotes().filter(n => n.statut === 'publiée')  );
   protected readonly reclamationsOuvertes = signal<any[]>([]);
 
   // Formulaire saisie
@@ -87,6 +85,7 @@ export class EspaceEnseignant implements OnInit {
     this.notif.charger();
     this.chargerDonnees();
     this.chargerProfil();
+    this.chargerReclamations();
   }
 
   private chargerProfil(): void {
@@ -166,7 +165,7 @@ export class EspaceEnseignant implements OnInit {
   }
 
   protected publierNote(id: number): void {
-    this.http.put(`${this.apiUrl}/notes/${id}`, { statut: 'publie' }, { headers: this.headers }).subscribe({
+    this.http.put(`${this.apiUrl}/notes/${id}`, { statut: 'publiée' }, { headers: this.headers }).subscribe({
       next: () => this.chargerDonnees(),
       error: (e) => console.error(e)
     });
@@ -219,6 +218,19 @@ export class EspaceEnseignant implements OnInit {
   if (!confirm('Supprimer cette note ?')) return;
   this.http.delete(`${this.apiUrl}/notes/${id}`, { headers: this.headers }).subscribe({
     next: () => this.chargerDonnees(),
+    error: (e) => console.error(e)
+  });
+}
+protected chargerReclamations(): void {
+  this.http.get<any[]>(`${this.apiUrl}/reclamations/mes-reclamations`, { headers: this.headers }).subscribe({
+    next: (data) => this.mesReclamations.set(Array.isArray(data) ? data : []),
+    error: () => {}
+  });
+}
+
+protected relancerReclamation(id: number): void {
+  this.http.post(`${this.apiUrl}/reclamations/${id}/relancer`, {}, { headers: this.headers }).subscribe({
+    next: () => this.chargerReclamations(),
     error: (e) => console.error(e)
   });
 }

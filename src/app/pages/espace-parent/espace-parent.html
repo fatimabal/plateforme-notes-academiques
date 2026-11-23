@@ -12,6 +12,33 @@
         <p class="nom-utilisateur">{{ nomParent }}</p>
         <p class="role-utilisateur">Parent</p>
       </div>
+      <div class="cloche-container" style="position:relative; display:inline-block;">
+        <button type="button" class="bouton-reset" (click)="afficherNotifs.set(!afficherNotifs())">
+          🔔
+          @if (notif.nonLues() > 0) {
+          <span class="badge-notif">{{ notif.nonLues() }}</span>
+          }
+        </button>
+        @if (afficherNotifs()) {
+        <div class="dropdown-notifs"
+          style="position:absolute; right:0; top:40px; width:320px; background:white; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:999; padding:8px;">
+          <p style="font-weight:bold; padding:8px; border-bottom:1px solid #eee;">Notifications</p>
+          @if (notif.notifications().length === 0) {
+          <p style="padding:12px; color:#888;">Aucune notification</p>
+          }
+          @for (n of notif.notifications(); track n.id) {
+          <div style="padding:10px 8px; border-bottom:1px solid #f0f0f0; font-size:13px;">
+            {{ n.data.message }}
+          </div>
+          }
+          <button type="button"
+            style="width:100%; padding:8px; background:#f5f5f5; border:none; cursor:pointer; border-radius:0 0 8px 8px;"
+            (click)="notif.marquerLues()">
+            Tout marquer comme lu
+          </button>
+        </div>
+        }
+      </div>
       <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
     </div>
   </header>
@@ -19,10 +46,33 @@
   <main class="contenu">
     <h1 class="titre-page">Espace Parent</h1>
 
+    <!-- Filtre semestre -->
+    @if (semestres().length > 0) {
+      <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <span style="font-weight: 600; color: #374151;">Semestre :</span>
+        <button
+          (click)="semestreSelectionne.set('tous')"
+          [style.background]="semestreSelectionne() === 'tous' ? '#4f46e5' : '#e5e7eb'"
+          [style.color]="semestreSelectionne() === 'tous' ? '#fff' : '#374151'"
+          style="padding: 0.4rem 1rem; border-radius: 999px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">
+          Tous
+        </button>
+        @for (s of semestres(); track s.id) {
+          <button
+            (click)="semestreSelectionne.set(s.id.toString())"
+            [style.background]="semestreSelectionne() === s.id.toString() ? '#4f46e5' : '#e5e7eb'"
+            [style.color]="semestreSelectionne() === s.id.toString() ? '#fff' : '#374151'"
+            style="padding: 0.4rem 1rem; border-radius: 999px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500;">
+            {{ s.libelle }}
+          </button>
+        }
+      </div>
+    }
+
     <div class="grille-stats">
       <div class="carte-stat">
         <p class="label-stat"><span class="icone-stat">📄</span> Notes</p>
-        <p class="valeur-stat">{{ notes().length }}</p>
+        <p class="valeur-stat">{{ notesFiltrees().length }}</p>
       </div>
       <div class="carte-stat">
         <p class="label-stat"><span class="icone-stat">📑</span> Bulletins</p>
@@ -34,10 +84,29 @@
       </div>
     </div>
 
+    <!-- Carte bulletin -->
+    @for (b of bulletins(); track b.id) {
+    <section class="carte carte-bulletin">
+      <div>
+        <h2 class="titre-carte">Bulletin de notes — {{ b.semestre?.libelle }}</h2>
+        <p class="description-carte">Le bulletin de votre enfant est disponible.</p>
+      </div>
+      <button type="button" class="bouton-principal" style="cursor:pointer;" (click)="bulletinVu.set(b)">
+        Voir le bulletin
+      </button>
+    </section>
+    }
+
     <!-- Notes -->
     <section class="carte">
       <h2 class="titre-carte">Notes de mon enfant</h2>
-      <p class="description-carte">Toutes les notes enregistrées pour votre enfant.</p>
+      <p class="description-carte">
+        @if (semestreSelectionne() === 'tous') {
+          Toutes les notes enregistrées pour votre enfant.
+        } @else {
+          Notes du {{ semestres()[ semestres().findIndex(s => s.id.toString() === semestreSelectionne()) ]?.libelle }}.
+        }
+      </p>
       <table class="table-comptes">
         <thead>
           <tr>
@@ -48,7 +117,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (n of notes(); track n.id) {
+          @for (n of notesFiltrees(); track n.id) {
             <tr>
               <td>{{ n.matiere?.libelle }}</td>
               <td>{{ n.type }}</td>
@@ -56,35 +125,8 @@
               <td><span class="badge-role">{{ n.statut }}</span></td>
             </tr>
           }
-          @if (notes().length === 0) {
+          @if (notesFiltrees().length === 0) {
             <tr><td colspan="4" style="text-align:center; color:#888;">Aucune note disponible</td></tr>
-          }
-        </tbody>
-      </table>
-    </section>
-
-    <!-- Bulletins -->
-    <section class="carte">
-      <h2 class="titre-carte">Bulletins</h2>
-      <p class="description-carte">Bulletins semestriels de votre enfant.</p>
-      <table class="table-comptes">
-        <thead>
-          <tr>
-            <th>Semestre</th>
-            <th>Moyenne</th>
-            <th>Mention</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (b of bulletins(); track b.id) {
-            <tr>
-              <td>{{ b.semestre?.libelle }}</td>
-              <td class="nom-fort">{{ b.moyenne_generale }}/20</td>
-              <td><span class="badge-role">{{ b.mention }}</span></td>
-            </tr>
-          }
-          @if (bulletins().length === 0) {
-            <tr><td colspan="3" style="text-align:center; color:#888;">Aucun bulletin disponible</td></tr>
           }
         </tbody>
       </table>
@@ -106,4 +148,125 @@
       </section>
     }
   </main>
+
+  <!-- Modal bulletin ISI -->
+  @if (bulletinVu()) {
+  <div class="overlay-modal" (click)="bulletinVu.set(null)">
+    <div class="modal-details" style="max-width:860px;width:97%;max-height:90vh;overflow-y:auto;"
+      (click)="$event.stopPropagation()">
+
+      <div id="contenu-bulletin-parent">
+
+      <!-- En-tête ISI -->
+      <div
+        style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a56db;padding-bottom:1rem;margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <img src="isi.jpg" alt="ISI" style="height:48px;" />
+          <div>
+            <p style="margin:0;font-weight:700;font-size:0.95rem;color:#1a56db;">GROUPE ISI</p>
+            <p style="margin:0;font-size:0.75rem;color:#555;">Sciences et Technologies</p>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0;font-weight:700;font-size:1rem;color:#1a56db;">Bulletin de notes</p>
+          <p style="margin:0;font-size:0.85rem;color:#555;">{{ bulletinVu().semestre?.libelle ?? '' }}</p>
+          <p style="margin:0;font-size:0.8rem;color:#888;">Session : {{ bulletinVu().session ?? 'Normale' }}</p>
+        </div>
+      </div>
+
+      <!-- Infos étudiant -->
+      <div
+        style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1.5rem;font-size:0.85rem;margin-bottom:1rem;padding:0.75rem;background:#f8faff;border-radius:6px;">
+        <div><strong>Année académique :</strong> {{ bulletinVu().infos_etudiant?.anneeAcademique ?? '—' }}</div>
+        <div><strong>Matricule :</strong> {{ bulletinVu().infos_etudiant?.matricule ?? bulletinVu().etudiant?.matricule ?? '—' }}</div>
+        <div><strong>Prénom et nom :</strong> {{ bulletinVu().etudiant?.user ? (bulletinVu().etudiant.user.prenom + ' ' + bulletinVu().etudiant.user.nom) : '—' }}</div>
+        <div><strong>Sexe :</strong> {{ bulletinVu().infos_etudiant?.sexe ?? '—' }}</div>
+        <div><strong>Date et lieu de naissance :</strong> {{ bulletinVu().infos_etudiant?.dateNaissance ?? '—' }} à {{ bulletinVu().infos_etudiant?.lieuNaissance ?? '—' }}</div>
+        <div><strong>Classe :</strong> {{ bulletinVu().infos_etudiant?.classe ?? '—' }}</div>
+        <div><strong>Filière :</strong> {{ bulletinVu().infos_etudiant?.filiere ?? '—' }}</div>
+        <div><strong>Diplôme :</strong> {{ bulletinVu().infos_etudiant?.diplome ?? '—' }}</div>
+      </div>
+
+      <!-- Tableau détaillé par UE -->
+      @if (bulletinVu().details && bulletinVu().details.length > 0) {
+        @for (d of bulletinVu().details; track d.id) {
+        <div style="margin-bottom:1rem;">
+          <div
+            style="background:#1a56db;color:white;padding:0.4rem 0.75rem;font-weight:600;font-size:0.85rem;border-radius:4px 4px 0 0;">
+            {{ d.ue?.libelle ?? 'UE ' + d.ue_id }}
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+            <thead>
+              <tr style="background:#e8f0fe;">
+                <th style="padding:5px 8px;text-align:left;border:1px solid #d0d9f0;">Éléments constitutifs</th>
+                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">MCC<br><span style="font-weight:normal;font-size:0.75rem;">40%</span></th>
+                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Examen<br><span style="font-weight:normal;font-size:0.75rem;">60%</span></th>
+                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moy<br><span style="font-weight:normal;font-size:0.75rem;">EC</span></th>
+                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Coef<br><span style="font-weight:normal;font-size:0.75rem;">EC</span></th>
+                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moyenne<br><span style="font-weight:normal;font-size:0.75rem;">×Coef</span></th>
+                <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Appréciation</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (m of d.ue?.modules; track m.id) {
+              <tr>
+                <td style="padding:4px 8px;border:1px solid #e5e9f5;">{{ m.libelle }}</td>
+                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.mcc ?? '—' }}</td>
+                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.examen ?? '—' }}</td>
+                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;font-weight:600;">{{ m.moyenne_module ?? '—' }}</td>
+                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.coefficient }}</td>
+                <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ (m.moyenne_module && m.coefficient) ? (m.moyenne_module * m.coefficient).toFixed(2) : '—' }}</td>
+                <td style="padding:4px 8px;border:1px solid #e5e9f5;font-size:0.78rem;color:#555;">{{ d.appreciation }}</td>
+              </tr>
+              }
+              <tr style="background:#f0f4ff;">
+                <td colspan="4" style="padding:4px 8px;border:1px solid #d0d9f0;text-align:right;font-size:0.78rem;color:#666;">Moyenne UE :</td>
+                <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{ d.ue?.credits }}</td>
+                <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{ d.moyenne_ue }}/20</td>
+                <td style="padding:4px 8px;border:1px solid #d0d9f0;font-size:0.78rem;">
+                  @if (d.valide) {
+                  <span style="color:#166534;font-weight:600;">Validée</span>
+                  } @else {
+                  <span style="color:#b91c1c;font-weight:600;">Non validée</span>
+                  }
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        }
+      }
+
+      <!-- Récap semestre -->
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border-radius:8px;padding:1rem;margin-top:0.5rem;">
+        <div>
+          <p style="margin:0;font-size:0.8rem;color:#666;">Total crédits obtenus</p>
+          <p style="margin:0;font-size:1.1rem;font-weight:700;color:#1a56db;">
+            {{ bulletinVu().details ? bulletinVu().details.reduce((s, d) => s + (d.credits_obtenus ?? 0), 0) : 0 }}
+            / {{ bulletinVu().details ? bulletinVu().details.reduce((s, d) => s + (d.ue?.credits ?? 0), 0) : 0 }}
+          </p>
+        </div>
+        <div style="text-align:center;">
+          <p style="margin:0;font-size:0.8rem;color:#666;">Moyenne du semestre</p>
+          <p style="margin:0;font-size:1.8rem;font-weight:700;color:#1a56db;">{{ bulletinVu().moyenne_generale }}/20</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0;font-size:0.8rem;color:#666;">Mention</p>
+          <p style="margin:0;font-size:1.1rem;font-weight:600;color:#1a56db;">{{ bulletinVu().mention }}</p>
+        </div>
+      </div>
+
+      </div><!-- fin #contenu-bulletin-parent -->
+
+      <div style="text-align:right;margin-top:1.5rem;display:flex;justify-content:flex-end;gap:0.75rem;">
+        <button type="button" class="bouton-principal" style="background:#166534;" (click)="telechargerPDF()" [disabled]="pdfEnCours()">
+          {{ pdfEnCours() ? '⏳ Génération…' : '📥 Télécharger PDF' }}
+        </button>
+        <button type="button" class="bouton-principal" (click)="bulletinVu.set(null)">Fermer</button>
+      </div>
+    </div>
+  </div>
+  }
+
 </div>

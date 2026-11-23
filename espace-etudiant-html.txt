@@ -1,0 +1,330 @@
+﻿<div class="page">
+  <header class="entete-page">
+    <div class="marque-entete">
+      <img src="isi.jpg" alt="Logo ISI" class="logo-entete" />
+      <div>
+        <p class="titre-entete">ISI Â· Gestion des Notes</p>
+        <p class="soustitre-entete">Institut SupÃ©rieur d'Informatique</p>
+      </div>
+    </div>
+    <div class="utilisateur-entete">
+      <div class="identite-utilisateur">
+        <p class="nom-utilisateur">{{ nomEtudiant() }}</p>
+        <p class="role-utilisateur">Ã‰tudiant</p>
+      </div>
+      <div class="cloche-container" style="position:relative; display:inline-block;">
+        <button type="button" class="bouton-reset" (click)="afficherNotifs.set(!afficherNotifs())">
+          ðŸ””
+          @if (notif.nonLues() > 0) {
+          <span class="badge-notif">{{ notif.nonLues() }}</span>
+          }
+        </button>
+        @if (afficherNotifs()) {
+        <div class="dropdown-notifs"
+          style="position:absolute; right:0; top:40px; width:320px; background:white; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:999; padding:8px;">
+          <p style="font-weight:bold; padding:8px; border-bottom:1px solid #eee;">Notifications</p>
+          @if (notif.notifications().length === 0) {
+          <p style="padding:12px; color:#888;">Aucune notification</p>
+          }
+          @for (n of notif.notifications(); track n.id) {
+          <div style="padding:10px 8px; border-bottom:1px solid #f0f0f0; font-size:13px;">
+            {{ n.data.message }}
+          </div>
+          }
+          <button type="button"
+            style="width:100%; padding:8px; background:#f5f5f5; border:none; cursor:pointer; border-radius:0 0 8px 8px;"
+            (click)="notif.marquerLues()">
+            Tout marquer comme lu
+          </button>
+        </div>
+        }
+      </div>
+      <a routerLink="/login" class="bouton-deconnexion">â†ª DÃ©connexion</a>
+    </div>
+  </header>
+
+  <main class="contenu">
+    <h1 class="titre-page">Bonjour, {{ nomEtudiant() }}</h1>
+
+    <div class="ligne-roles" style="margin-bottom:1.5rem;">
+      <button type="button" [class]="ongletActif()==='notes' ? 'semestre semestre-actif' : 'semestre'"
+        (click)="ongletActif.set('notes')">Mes notes</button>
+      <button type="button" [class]="ongletActif()==='reclamations' ? 'semestre semestre-actif' : 'semestre'"
+        (click)="ongletActif.set('reclamations'); chargerReclamations()">Mes rÃ©clamations</button>
+      <button type="button" [class]="ongletActif()==='profil' ? 'semestre semestre-actif' : 'semestre'"
+        (click)="ongletActif.set('profil')">Mon profil</button>
+    </div>
+
+    @if (ongletActif() === 'notes') {
+
+    <section class="carte">
+      <p class="label-carte">Semestres consultables :</p>
+      <div class="liste-semestres">
+        @for (s of semestres(); track s.code) {
+        <button type="button" class="semestre" [class.semestre-actif]="s.code === semestreSelectionneCode()"
+          (click)="selectionnerSemestre(s.code)">
+          {{ s.label }}
+        </button>
+        }
+      </div>
+    </section>
+
+    <div class="grille-info">
+      <div class="info-carte">
+        <p class="label-info">Classe</p>
+        <p class="valeur-info">{{ classe() }}</p>
+      </div>
+      <div class="info-carte">
+        <p class="label-info">Semestre affichÃ©</p>
+        <p class="valeur-info">{{ semestreSelectionneCode() ?? 'â€”' }}</p>
+      </div>
+      <div class="info-carte info-carte-accent">
+        <p class="label-info">Moyenne du semestre</p>
+        <p class="valeur-info valeur-info-accent">
+          {{ moyenneSemestre() !== null ? (moyenneSemestre() + '/20') : 'â€”' }}
+        </p>
+      </div>
+    </div>
+
+    <section class="carte carte-bulletin">
+      <div>
+        <h2 class="titre-carte">Bulletin de notes â€” {{ semestreSelectionneCode() }}</h2>
+        <p class="description-carte">
+          @if (moyenneSemestre() !== null) {
+          Votre bulletin est disponible.
+          } @else {
+          Le bulletin de ce semestre n'est pas encore disponible.
+          }
+        </p>
+      </div>
+      <button type="button" class="bouton-bulletin" (click)="voirBulletin()"> ðŸ“„ Voir mon bulletin
+      </button>
+    </section>
+
+    <h2 class="titre-section">Notes publiÃ©es â€” {{ semestreSelectionneCode() }}</h2>
+    @if (modulesAffiches().length === 0) {
+    <p class="etat-vide">Aucune note publiÃ©e pour ce semestre.</p>
+    }
+
+    @for (m of modulesAffiches(); track m.matiere) {
+    <section class="carte">
+      <div class="entete-ligne-carte">
+        <h3 class="titre-carte">{{ m.matiere }}</h3>
+        <span class="badge-moyenne">Moyenne : {{ m.moyenne }}/20</span>
+      </div>
+      <table class="table-notes">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Note</th>
+            <th>Coef.</th>
+            <th>Date</th>
+            <th class="colonne-action">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of m.evaluations; track e.type) {
+          <tr>
+            <td>{{ e.type }}</td>
+            <td>{{ e.note }}/20</td>
+            <td>{{ e.coefficient }}</td>
+            <td>{{ e.date }}</td>
+            <td class="colonne-action">
+              @if (estReclamee(m.matiere, e.type)) {
+              <span class="statut-reclamee">âœ“ EnvoyÃ©e</span>
+              } @else {
+              <button type="button" class="bouton-reclamer" (click)="ouvrirReclamation(m.matiere, e.type)">
+                âš  RÃ©clamer
+              </button>
+              }
+            </td>
+          </tr>
+          @if (reclamationOuverte() === cleLigne(m.matiere, e.type)) {
+          <tr class="ligne-reclamation">
+            <td colspan="5">
+              <label [for]="'motif-' + m.matiere + e.type">Motif de la rÃ©clamation</label>
+              <textarea [id]="'motif-' + m.matiere + e.type" [(ngModel)]="motifReclamation" rows="2"
+                placeholder="Expliquez pourquoi cette note vous semble erronÃ©eâ€¦"></textarea>
+              <div class="actions-reclamation">
+                <button type="button" class="bouton-annuler" (click)="annulerReclamation()">Annuler</button>
+                <button type="button" class="bouton-envoyer" (click)="envoyerReclamation(m.matiere, e.type)">
+                  Envoyer la rÃ©clamation
+                </button>
+              </div>
+            </td>
+          </tr>
+          }
+          }
+        </tbody>
+      </table>
+    </section>
+    }
+
+    } @else if (ongletActif() === 'reclamations') {
+
+    <section class="carte">
+      <h2 class="titre-carte">Mes rÃ©clamations ({{ mesReclamations().length }})</h2>
+      @if (mesReclamations().length === 0) {
+      <p class="etat-vide">Aucune rÃ©clamation envoyÃ©e.</p>
+      } @else {
+      <table class="table-notes">
+        <thead>
+          <tr>
+            <th>MatiÃ¨re</th>
+            <th>Motif</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of mesReclamations(); track r.id) {
+          <tr>
+            <td>{{ r.note?.matiere?.libelle ?? 'â€”' }}</td>
+            <td>{{ r.motif }}</td>
+            <td>
+              <span [class]="r.statut === 'traitee' ? 'badge-statut' : 'statut-reclamee'">
+                {{ r.statut === 'traitee' ? 'TraitÃ©e' : 'En attente' }}
+              </span>
+            </td>
+            <td>
+              @if (r.statut !== 'traitee') {
+              <button type="button" class="bouton-reclamer" (click)="relancerReclamation(r.id)">
+                ðŸ” Relancer
+              </button>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+      }
+    </section>
+
+    } @else {
+    <section class="carte">
+      <h2 class="titre-carte">Mon profil</h2>
+      <div class="grille-info" style="margin-bottom:1.5rem;">
+        <div class="info-carte">
+          <p class="label-info">Matricule</p>
+          <p class="valeur-info">{{ matricule() }}</p>
+        </div>
+        <div class="info-carte">
+          <p class="label-info">Date de naissance</p>
+          <p class="valeur-info">{{ dateNaissance() }}</p>
+        </div>
+        <div class="info-carte">
+          <p class="label-info">Lieu de naissance</p>
+          <p class="valeur-info">{{ lieuNaissance() }}</p>
+        </div>
+        <div class="info-carte">
+          <p class="label-info">FiliÃ¨re</p>
+          <p class="valeur-info">{{ filiere() }}</p>
+        </div>
+      </div>
+
+      @if (!profilEnEdition()) {
+      <button type="button" class="bouton-modifier" (click)="profilEnEdition.set(true)">âœ Modifier mes informations</button>
+      } @else {
+      <div class="formulaire-nouveau-compte" style="margin-top:1rem;">
+        <div class="champ">
+          <label>Nom</label>
+          <input type="text" [(ngModel)]="nomEdite" [ngModelOptions]="{standalone:true}" />
+        </div>
+        <div class="champ">
+          <label>PrÃ©nom</label>
+          <input type="text" [(ngModel)]="prenomEdite" [ngModelOptions]="{standalone:true}" />
+        </div>
+        <div class="actions-reclamation">
+          <button type="button" class="bouton-annuler" (click)="profilEnEdition.set(false)">Annuler</button>
+          <button type="button" class="bouton-envoyer" (click)="enregistrerProfil()">Enregistrer</button>
+        </div>
+      </div>
+      }
+    </section>
+
+    }
+  </main>
+  @if (bulletinOuvert()) {
+  <div class="overlay-modal" (click)="fermerBulletin()">
+    <div class="modal-details" style="max-width:720px;width:95%;" (click)="$event.stopPropagation()">
+
+      @if (bulletinChargement()) {
+      <p style="text-align:center;padding:2rem;color:#666;">â³ Chargement du bulletinâ€¦</p>
+      } @else if (!bulletinData()) {
+      <p style="text-align:center;padding:2rem;color:#b91c1c;">
+        âš ï¸ Bulletin non disponible pour ce semestre.<br>
+        <small>Demandez Ã  l'administrateur de gÃ©nÃ©rer les bulletins.</small>
+      </p>
+      } @else {
+      <!-- En-tÃªte bulletin -->
+      <div style="text-align:center;border-bottom:2px solid #1a56db;padding-bottom:1rem;margin-bottom:1.5rem;">
+        <h2 style="color:#1a56db;margin:0;">BULLETIN DE NOTES</h2>
+        <p style="margin:4px 0;font-size:0.95rem;">
+          {{ bulletinData().semestre?.libelle }} â€”
+          Session : {{ bulletinData().session ?? 'Normale' }}
+        </p>
+      </div>
+
+      <!-- Infos Ã©tudiant -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1.5rem;font-size:0.9rem;">
+        <div><strong>Ã‰tudiant :</strong> {{ nomEtudiant() }}</div>
+        <div><strong>Matricule :</strong> {{ matricule() }}</div>
+        <div><strong>FiliÃ¨re :</strong> {{ filiere() }}</div>
+        <div><strong>Classe :</strong> {{ classe() }}</div>
+      </div>
+
+      <!-- Tableau des UE -->
+      <table class="table-notes" style="margin-bottom:1.5rem;">
+        <thead>
+          <tr>
+            <th>UnitÃ© d'Enseignement</th>
+            <th style="text-align:center;">Moyenne UE</th>
+            <th style="text-align:center;">CrÃ©dits</th>
+            <th style="text-align:center;">Statut</th>
+            <th>ApprÃ©ciation</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of bulletinData().details; track d.id) {
+          <tr>
+            <td class="nom-fort">{{ d.ue?.libelle ?? 'UE ' + d.ue_id }}</td>
+            <td style="text-align:center;">{{ d.moyenne_ue }}/20</td>
+            <td style="text-align:center;">{{ d.credits_obtenus }} / {{ d.ue?.credits }}</td>
+            <td style="text-align:center;">
+              @if (d.valide) {
+              <span style="color:#166534;font-weight:600;">âœ… ValidÃ©e</span>
+              } @else {
+              <span style="color:#b91c1c;font-weight:600;">âŒ Non validÃ©e</span>
+              }
+            </td>
+            <td style="font-size:0.85rem;color:#555;">{{ d.appreciation }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Moyenne gÃ©nÃ©rale + mention -->
+      <div
+        style="background:#f0f4ff;border-radius:8px;padding:1rem;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <p style="margin:0;font-size:0.85rem;color:#666;">Moyenne GÃ©nÃ©rale</p>
+          <p style="margin:0;font-size:1.8rem;font-weight:700;color:#1a56db;">
+            {{ bulletinData().moyenne_generale }}/20
+          </p>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0;font-size:0.85rem;color:#666;">Mention</p>
+          <p style="margin:0;font-size:1.2rem;font-weight:600;color:#1a56db;">
+            {{ bulletinData().mention }}
+          </p>
+        </div>
+      </div>
+      }
+
+      <div style="text-align:right;margin-top:1.5rem;">
+        <button type="button" class="bouton-principal" (click)="fermerBulletin()">Fermer</button>
+      </div>
+    </div>
+  </div>
+  }
+</div>
