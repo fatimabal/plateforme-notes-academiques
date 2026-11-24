@@ -64,6 +64,16 @@
         }
       </button>
       <button type="button"
+        [style.border-bottom]="ongletActif() === 'journal' ? '3px solid #1a56db' : '3px solid transparent'"
+        [style.color]="ongletActif() === 'journal' ? '#1a56db' : '#6b7280'"
+        style="background:none;border:none;border-bottom:3px solid transparent;padding:0.6rem 1.2rem;font-weight:600;cursor:pointer;font-size:0.95rem;"
+        (click)="ongletActif.set('journal')">
+        Journal d'audit
+        @if (journal().length > 0) {
+          <span style="background:#6b7280;color:white;border-radius:999px;padding:1px 7px;font-size:0.75rem;margin-left:6px;">{{ journal().length }}</span>
+        }
+      </button>
+      <button type="button"
         [style.border-bottom]="ongletActif() === 'profil' ? '3px solid #1a56db' : '3px solid transparent'"
         [style.color]="ongletActif() === 'profil' ? '#1a56db' : '#6b7280'"
         style="background:none;border:none;border-bottom:3px solid transparent;padding:0.6rem 1.2rem;font-weight:600;cursor:pointer;font-size:0.95rem;"
@@ -293,6 +303,56 @@
     </section>
     } <!-- fin onglet réclamations -->
 
+    <!-- ===== ONGLET JOURNAL D'AUDIT ===== -->
+    @if (ongletActif() === 'journal') {
+    <section class="carte">
+      <h2 class="titre-carte">Journal d'audit</h2>
+      <p style="font-size:0.9rem;color:#6b7280;margin-bottom:1rem;">Historique des modifications de notes suite aux réclamations.</p>
+
+      @if (journal().length === 0) {
+        <p style="text-align:center;color:#9ca3af;padding:2rem;">Aucune modification enregistrée.</p>
+      } @else {
+        <table class="table-comptes" style="font-size:0.88rem;">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Étudiant</th>
+              <th>Matière</th>
+              <th>Ancienne note</th>
+              <th>Nouvelle note</th>
+              <th>Modifié par</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (h of journal(); track h.id) {
+              <tr>
+                <td style="white-space:nowrap;">{{ h.dateAction | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  @if (h.note?.etudiant?.user) {
+                    {{ h.note.etudiant.user.prenom }} {{ h.note.etudiant.user.nom }}
+                  } @else { — }
+                </td>
+                <td>{{ h.note?.matiere?.libelle ?? '—' }}</td>
+                <td style="text-align:center;color:#b91c1c;font-weight:600;">{{ h.ancienneValeur }}/20</td>
+                <td style="text-align:center;color:#166534;font-weight:600;">{{ h.nouvelleValeur }}/20</td>
+                <td>
+                  @if (h.user) {
+                    {{ h.user.prenom }} {{ h.user.nom }}
+                    <span style="font-size:0.78rem;color:#6b7280;">({{ h.user.role }})</span>
+                  } @else { — }
+                </td>
+                <td>
+                  <span style="font-size:0.78rem;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:999px;">{{ h.typeAction }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+    } <!-- fin onglet journal -->
+
     <!-- ===== ONGLET MON PROFIL ===== -->
     @if (ongletActif() === 'profil') {
     <section class="carte" style="max-width:600px;">
@@ -315,17 +375,15 @@
           <div><strong>Téléphone :</strong> {{ profil()?.telephone ?? '—' }}</div>
         </div>
 
-        @if (profil()?.chefDepartement) {
-          <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0 0 0.5rem;border-top:1px solid #e5e7eb;padding-top:1rem;">Informations département</p>
-          <div style="display:grid;gap:0.75rem;font-size:0.95rem;">
-            <div><strong>Département :</strong> {{ profil()?.chefDepartement?.departement ?? '—' }}</div>
-            <div><strong>Spécialité :</strong> {{ profil()?.chefDepartement?.specialite ?? '—' }}</div>
-            <div><strong>Grade :</strong> {{ profil()?.chefDepartement?.grade ?? '—' }}</div>
-            <div><strong>Mandat :</strong> {{ profil()?.chefDepartement?.mandat ?? '—' }}</div>
-            <div><strong>Date de début :</strong> {{ profil()?.chefDepartement?.dateDebut ?? '—' }}</div>
-            <div><strong>Date de fin :</strong> {{ profil()?.chefDepartement?.dateFin ?? '—' }}</div>
-          </div>
-        }
+        <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0 0 0.5rem;border-top:1px solid #e5e7eb;padding-top:1rem;">Informations département</p>
+        <div style="display:grid;gap:0.75rem;font-size:0.95rem;">
+          <div><strong>Département :</strong> {{ profil()?.chefDepartement?.departement ?? '—' }}</div>
+          <div><strong>Spécialité :</strong> {{ profil()?.chefDepartement?.specialite ?? '—' }}</div>
+          <div><strong>Grade :</strong> {{ profil()?.chefDepartement?.grade ?? '—' }}</div>
+          <div><strong>Mandat :</strong> {{ profil()?.chefDepartement?.mandat ?? '—' }}</div>
+          <div><strong>Date de début :</strong> {{ profil()?.chefDepartement?.dateDebut ?? '—' }}</div>
+          <div><strong>Date de fin :</strong> {{ profil()?.chefDepartement?.dateFin ?? '—' }}</div>
+        </div>
 
         <button type="button" class="bouton-principal" style="margin-top:1.5rem;"
           (click)="enEditionProfil.set(true)">
@@ -355,34 +413,45 @@
               style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
           </div>
 
-          @if (profil()?.chefDepartement) {
-            <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0.5rem 0 0;border-top:1px solid #e5e7eb;padding-top:1rem;">Informations département</p>
-            <div>
-              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Spécialité</label>
-              <input type="text" [(ngModel)]="specialiteEditee"
-                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
-            </div>
-            <div>
-              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Grade</label>
-              <input type="text" [(ngModel)]="gradeEdite"
-                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
-            </div>
-            <div>
-              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Mandat</label>
-              <input type="text" [(ngModel)]="mandatEdite"
-                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
-            </div>
-            <div>
-              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Date de début</label>
-              <input type="date" [(ngModel)]="dateDebutEditee"
-                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
-            </div>
-            <div>
-              <label style="font-size:0.85rem;font-weight:600;color:#374151;">Date de fin</label>
-              <input type="date" [(ngModel)]="dateFinEditee"
-                style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
-            </div>
-          }
+          <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0.5rem 0 0;border-top:1px solid #e5e7eb;padding-top:1rem;">Informations département</p>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Spécialité</label>
+            <input type="text" [(ngModel)]="specialiteEditee"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Grade</label>
+            <input type="text" [(ngModel)]="gradeEdite"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Mandat</label>
+            <input type="text" [(ngModel)]="mandatEdite"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Date de début</label>
+            <input type="date" [(ngModel)]="dateDebutEditee"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Date de fin</label>
+            <input type="date" [(ngModel)]="dateFinEditee"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+
+          <p style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin:0.5rem 0 0;border-top:1px solid #e5e7eb;padding-top:1rem;">Modifier le mot de passe <span style="font-weight:400;color:#9ca3af;">(optionnel)</span></p>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Nouveau mot de passe</label>
+            <input type="password" [(ngModel)]="motDePasseEdite"
+              placeholder="Laisser vide pour ne pas changer"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;font-weight:600;color:#374151;">Confirmer le mot de passe</label>
+            <input type="password" [(ngModel)]="motDePasseConfirme"
+              style="width:100%;padding:0.5rem 0.75rem;border:1px solid #d1d5db;border-radius:6px;margin-top:4px;font-size:0.9rem;" />
+          </div>
         </div>
         <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
           <button type="button" class="bouton-principal" (click)="sauvegarderProfil()">Enregistrer</button>

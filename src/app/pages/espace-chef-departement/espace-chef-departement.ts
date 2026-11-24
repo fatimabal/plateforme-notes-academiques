@@ -24,7 +24,7 @@ export class EspaceChefDepartement implements OnInit {
   protected readonly nomChef = localStorage.getItem('nom') ?? 'Chef Département';
 
   // Onglets
-  protected readonly ongletActif = signal<'tableau-bord' | 'reclamations' | 'profil'>('tableau-bord');
+  protected readonly ongletActif = signal<'tableau-bord' | 'reclamations' | 'journal' | 'profil'>('tableau-bord');
 
   // Bulletins (source principale de données)
   protected readonly bulletins = signal<any[]>([]);
@@ -39,6 +39,9 @@ export class EspaceChefDepartement implements OnInit {
   protected readonly reclamations = signal<any[]>([]);
   private readonly toutesLesReclamations = signal<any[]>([]);
 
+  // Journal d'audit
+  protected readonly journal = signal<any[]>([]);
+
   // Profil
   protected profil = signal<any>(null);
   protected readonly enEditionProfil = signal(false);
@@ -51,6 +54,8 @@ export class EspaceChefDepartement implements OnInit {
   protected mandatEdite = '';
   protected dateDebutEditee = '';
   protected dateFinEditee = '';
+  protected motDePasseEdite = '';
+  protected motDePasseConfirme = '';
   protected readonly messageSuccesProfil = signal('');
   protected readonly messageErreurProfil = signal('');
 
@@ -98,7 +103,15 @@ export class EspaceChefDepartement implements OnInit {
       moyenne: Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10,
     }));
 
-    // Distribution des moyennes générales
+    // Distribution des moyennes par module (toutes les moyenne_module de tous les bulletins)
+    const toutesNoteModules: number[] = [];
+    for (const b of bs) {
+      for (const detail of (b.details ?? [])) {
+        for (const m of (detail.ue?.modules ?? [])) {
+          if (m.moyenne_module != null) toutesNoteModules.push(Number(m.moyenne_module));
+        }
+      }
+    }
     const tranches = [
       { tranche: '0–5', min: 0, max: 5 },
       { tranche: '6–9', min: 6, max: 9 },
@@ -108,7 +121,7 @@ export class EspaceChefDepartement implements OnInit {
     ];
     const distribution = tranches.map(t => ({
       tranche: t.tranche,
-      count: moyennes.filter(v => v >= t.min && v <= t.max).length,
+      count: toutesNoteModules.filter(v => v >= t.min && v <= t.max).length,
     }));
 
     // Moyennes par module (depuis les détails des bulletins)
@@ -175,6 +188,14 @@ export class EspaceChefDepartement implements OnInit {
     this.chargerSemestres();
     this.chargerReclamations();
     this.chargerProfil();
+    this.chargerJournal();
+  }
+
+  private chargerJournal(): void {
+    this.http.get<any[]>(`${this.apiUrl}/journal`, { headers: this.headers }).subscribe({
+      next: (data) => this.journal.set(Array.isArray(data) ? data : []),
+      error: () => this.journal.set([])
+    });
   }
 
   private chargerReclamations(): void {
@@ -209,6 +230,11 @@ export class EspaceChefDepartement implements OnInit {
   }
 
   protected sauvegarderProfil(): void {
+    if (this.motDePasseEdite && this.motDePasseEdite !== this.motDePasseConfirme) {
+      this.messageErreurProfil.set('Les mots de passe ne correspondent pas.');
+      this.messageSuccesProfil.set('');
+      return;
+    }
     const body: any = {
       nom: this.nomEdite,
       prenom: this.prenomEdite,
@@ -220,11 +246,17 @@ export class EspaceChefDepartement implements OnInit {
       dateDebut: this.dateDebutEditee,
       dateFin: this.dateFinEditee,
     };
+    if (this.motDePasseEdite) {
+      body.password = this.motDePasseEdite;
+      body.password_confirmation = this.motDePasseConfirme;
+    }
     this.http.put(`${this.apiUrl}/profile`, body, { headers: this.headers }).subscribe({
       next: () => {
         this.messageSuccesProfil.set('Profil mis à jour avec succès.');
         this.messageErreurProfil.set('');
         this.enEditionProfil.set(false);
+        this.motDePasseEdite = '';
+        this.motDePasseConfirme = '';
         this.chargerProfil();
       },
       error: () => {
