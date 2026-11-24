@@ -634,24 +634,28 @@
         </div>
         <button type="button" class="bouton-annuler" (click)="purgerJournal()">Purger</button>
       </div>
-      <table class="table-audit">
+           <table class="table-audit">
         <thead>
           <tr>
             <th>Date</th>
-            <th>Acteur</th>
+            <th>Étudiant</th>
+            <th>Matière</th>
+            <th>Ancienne note</th>
+            <th>Nouvelle note</th>
+            <th>Modifié par</th>
             <th>Action</th>
-            <th>Cible</th>
-            <th>Détails</th>
           </tr>
         </thead>
         <tbody>
           @for (e of journal(); track e.id) {
           <tr>
-            <td>{{ e.date }}</td>
-            <td>{{ e.acteur }} <span class="role-acteur">({{ e.role }})</span></td>
-            <td>{{ e.action }}</td>
-            <td>{{ e.cible }}</td>
-            <td>{{ e.details }}</td>
+            <td>{{ e.dateAction | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ e.note?.etudiant?.user?.prenom }} {{ e.note?.etudiant?.user?.nom }}</td>
+            <td>{{ e.note?.matiere?.libelle }}</td>
+            <td style="color:#b91c1c;font-weight:600;">{{ e.ancienneValeur }}/20</td>
+            <td style="color:#166534;font-weight:600;">{{ e.nouvelleValeur }}/20</td>
+            <td>{{ e.user?.prenom }} {{ e.user?.nom }} <span class="role-acteur">({{ e.user?.role }})</span></td>
+            <td>{{ e.typeAction }}</td>
           </tr>
           }
         </tbody>
