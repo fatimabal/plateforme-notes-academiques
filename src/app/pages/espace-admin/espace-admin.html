@@ -12,233 +12,360 @@
         <p class="nom-utilisateur">{{ nomActeur }}</p>
         <p class="role-utilisateur">Administrateur</p>
       </div>
-      <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <a routerLink="/login" class="bouton-deconnexion">↪ Déconnexion</a>
+      </div>
     </div>
   </header>
 
-  <main class="contenu">
-    <h1 class="titre-page">Administration de la plateforme</h1>
+  <div class="admin-layout">
 
-    <div class="grille-stats">
-      <div class="carte-stat">
-        <p class="label-stat"><span class="icone-stat">👥</span> Comptes</p>
-        <p class="valeur-stat">{{ comptes().length }}</p>
-      </div>
-      <div class="carte-stat">
-        <p class="label-stat"><span class="icone-stat">📄</span> Notes</p>
-        <p class="valeur-stat">{{ totalNotes }}</p>
-      </div>
-      <div class="carte-stat">
-        <p class="label-stat"><span class="icone-stat">🛡️</span> Réclamations</p>
-        <p class="valeur-stat">{{ totalReclamations }}</p>
-      </div>
-      <div class="carte-stat">
-        <p class="label-stat"><span class="icone-stat">🕘</span> Actions auditées</p>
-        <p class="valeur-stat">{{ journal().length }}</p>
-      </div>
-    </div>
+    <!-- ── SIDEBAR ── -->
+    <nav class="admin-sidebar">
+      <button class="sidebar-item" [class.sidebar-actif]="sectionActive()==='tableau'"
+        (click)="sectionActive.set('tableau')">
+        <span class="sidebar-icone">📊</span> Tableau de bord
+      </button>
+      <button class="sidebar-item" [class.sidebar-actif]="sectionActive()==='comptes'"
+        (click)="sectionActive.set('comptes')">
+        <span class="sidebar-icone">👥</span> Comptes
+      </button>
+      <button class="sidebar-item" [class.sidebar-actif]="sectionActive()==='import'"
+        (click)="sectionActive.set('import')">
+        <span class="sidebar-icone">📥</span> Import Léa
+      </button>
+      <button class="sidebar-item" [class.sidebar-actif]="sectionActive()==='donnees'"
+        (click)="sectionActive.set('donnees')">
+        <span class="sidebar-icone">🗂️</span> Données de référence
+      </button>
+      <button class="sidebar-item" [class.sidebar-actif]="sectionActive()==='bulletins'"
+        (click)="sectionActive.set('bulletins')">
+        <span class="sidebar-icone">📋</span> Bulletins
+      </button>
+      <button class="sidebar-item" [class.sidebar-actif]="sectionActive()==='journal'"
+        (click)="sectionActive.set('journal')">
+        <span class="sidebar-icone">🕘</span> Journal d'audit
+      </button>
+      <button class="sidebar-item" [class.sidebar-actif]="sectionActive()==='profil'"
+        (click)="sectionActive.set('profil')">
+        <span class="sidebar-icone">👤</span> Mon profil
+      </button>
+    </nav>
 
-    <div class="ligne-roles">
-      @for (r of repartitionRoles(); track r.role) {
-      <span class="pastille-role">{{ r.role }} · {{ r.count }}</span>
+    <!-- ── CONTENU PRINCIPAL ── -->
+    <main class="admin-contenu">
+
+      <!-- ══ TABLEAU DE BORD ══ -->
+      @if (sectionActive() === 'tableau') {
+      <h1 class="titre-page">Tableau de bord</h1>
+      <div class="grille-stats">
+        <div class="carte-stat">
+          <p class="label-stat"><span class="icone-stat">👥</span> Comptes</p>
+          <p class="valeur-stat">{{ comptes().length }}</p>
+        </div>
+        <div class="carte-stat">
+          <p class="label-stat"><span class="icone-stat">📄</span> Notes</p>
+          <p class="valeur-stat">{{ totalNotes }}</p>
+        </div>
+        <div class="carte-stat">
+          <p class="label-stat"><span class="icone-stat">🛡️</span> Réclamations</p>
+          <p class="valeur-stat">{{ totalReclamations }}</p>
+        </div>
+        <div class="carte-stat">
+          <p class="label-stat"><span class="icone-stat">🕘</span> Actions auditées</p>
+          <p class="valeur-stat">{{ journal().length }}</p>
+        </div>
+      </div>
+      <div class="ligne-roles">
+        @for (r of repartitionRoles(); track r.role) {
+        <span class="pastille-role">{{ r.role }} · {{ r.count }}</span>
+        }
+      </div>
+
+      <!-- Raccourcis rapides -->
+      <div class="grille-raccourcis">
+        <button class="carte-raccourci" (click)="sectionActive.set('comptes')">
+          <span class="raccourci-icone">👥</span>
+          <div>
+            <p class="raccourci-titre">Gestion des comptes</p>
+            <p class="raccourci-desc">Créer, modifier et désactiver des utilisateurs</p>
+          </div>
+        </button>
+        <button class="carte-raccourci" (click)="sectionActive.set('import')">
+          <span class="raccourci-icone">📥</span>
+          <div>
+            <p class="raccourci-titre">Import depuis Léa</p>
+            <p class="raccourci-desc">Importer étudiants, classes et modules via Excel</p>
+          </div>
+        </button>
+        <button class="carte-raccourci" (click)="sectionActive.set('donnees')">
+          <span class="raccourci-icone">🗂️</span>
+          <div>
+            <p class="raccourci-titre">Données de référence</p>
+            <p class="raccourci-desc">Gérer filières, classes, modules, semestres</p>
+          </div>
+        </button>
+        <button class="carte-raccourci" (click)="sectionActive.set('bulletins')">
+          <span class="raccourci-icone">📋</span>
+          <div>
+            <p class="raccourci-titre">Génération des bulletins</p>
+            <p class="raccourci-desc">Générer et consulter les bulletins par semestre</p>
+          </div>
+        </button>
+        <button class="carte-raccourci" (click)="sectionActive.set('journal')">
+          <span class="raccourci-icone">🕘</span>
+          <div>
+            <p class="raccourci-titre">Journal d'audit</p>
+            <p class="raccourci-desc">Tracer toutes les interventions sur les données</p>
+          </div>
+        </button>
+        <button class="carte-raccourci" (click)="sectionActive.set('profil')">
+          <span class="raccourci-icone">👤</span>
+          <div>
+            <p class="raccourci-titre">Mon profil</p>
+            <p class="raccourci-desc">Modifier mes informations et mot de passe</p>
+          </div>
+        </button>
+      </div>
       }
-    </div>
 
-    <section class="carte">
-      <div class="entete-gestion-comptes">
-        <div>
-          <h2 class="titre-carte">Gestion des comptes</h2>
-          <p class="description-carte">Création, modification, réinitialisation et suppression des utilisateurs.</p>
+      <!-- ══ COMPTES ══ -->
+      @if (sectionActive() === 'comptes') {
+      <h1 class="titre-page">Gestion des comptes</h1>
+      <section class="carte">
+        <div class="entete-gestion-comptes">
+          <div>
+            <h2 class="titre-carte">Utilisateurs</h2>
+            <p class="description-carte">Création, modification, réinitialisation et suppression des utilisateurs.</p>
+          </div>
+          <div class="controles-gestion-comptes">
+            <input type="text" class="champ-recherche" placeholder="Rechercher…" [(ngModel)]="recherche"
+              [ngModelOptions]="{ standalone: true }" />
+            <select class="champ-filtre-role" [ngModel]="roleFiltre()" (ngModelChange)="roleFiltre.set($event)">
+              <option>Tous les rôles</option>
+              @for (r of roles; track r) {
+              <option [value]="r">{{ r }}</option>
+              }
+            </select>
+            <button type="button" class="bouton-principal" (click)="basculerFormulaire()">
+              + Nouveau compte
+            </button>
+          </div>
         </div>
-        <div class="controles-gestion-comptes">
-          <input type="text" class="champ-recherche" placeholder="Rechercher…" [(ngModel)]="recherche"
-            [ngModelOptions]="{ standalone: true }" />
-          <select class="champ-filtre-role" [ngModel]="roleFiltre()" (ngModelChange)="roleFiltre.set($event)">
-            <option>Tous les rôles</option>
-            @for (r of roles; track r) {
-            <option [value]="r">{{ r }}</option>
-            }
-          </select>
-          <button type="button" class="bouton-principal" (click)="basculerFormulaire()">
-            + Nouveau compte
-          </button>
-        </div>
-      </div>
 
-      @if (formulaireOuvert()) {
-      <div class="formulaire-nouveau-compte">
-        <div class="champ">
-          <label>Prénom</label>
-          <input type="text" [(ngModel)]="nouveauPrenom" [ngModelOptions]="{standalone: true}" />
-        </div>
-        <div class="champ">
-          <label>Nom</label>
-          <input type="text" [(ngModel)]="nouveauNom" [ngModelOptions]="{standalone: true}" />
-        </div>
-        <div class="champ">
-          <label>E-mail</label>
-          <input type="email" [(ngModel)]="nouvelEmail" [ngModelOptions]="{standalone: true}" />
-        </div>
-        <div class="champ">
-          <label>Rôle</label>
-          <select [(ngModel)]="nouveauRole" [ngModelOptions]="{standalone: true}">
-            @for (r of roles; track r) {
-            <option [value]="r">{{ r }}</option>
-            }
-          </select>
-        </div>
-        @if (nouveauRole === 'enseignant') {
-        <div class="champ">
-          <label>Spécialité</label>
-          <input type="text" [(ngModel)]="nouveauSpecialite" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Informatique" />
-        </div>
-        <div class="champ">
-          <label>Grade</label>
-          <input type="text" [(ngModel)]="nouveauGrade" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Docteur" />
-        </div>
-        }
-        @if (nouveauRole === 'etudiant') {
-        <div class="champ">
-          <label>Date de naissance</label>
-          <input type="date" [(ngModel)]="nouveauDateNaissance" [ngModelOptions]="{standalone:true}" />
-        </div>
-        <div class="champ">
-          <label>Lieu de naissance</label>
-          <input type="text" [(ngModel)]="nouveauLieuNaissance" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Dakar" />
-        </div>
-        <div class="champ">
-          <label>Sexe</label>
-          <select [(ngModel)]="nouveauSexe" [ngModelOptions]="{standalone:true}">
-            <option value="">-- Choisir --</option>
-            <option value="M">Masculin</option>
-            <option value="F">Féminin</option>
-          </select>
-        </div>
-        <div class="champ">
-          <label>Filière</label>
-          <select [(ngModel)]="nouveauFiliere" [ngModelOptions]="{standalone:true}">
-            <option value="">-- Choisir une filière --</option>
-            @for (f of filieres(); track f.id) {
-            <option [value]="f.nom">{{ f.nom }}</option>
-            }
-          </select>
-        </div>
-        <div class="champ">
-          <label>Classe</label>
-          <select [(ngModel)]="nouveauClasseId" [ngModelOptions]="{standalone:true}">
-            <option value="">-- Choisir une classe --</option>
-            @for (c of classes(); track c.id) {
-            <option [value]="c.id">{{ c.nomClasse }}</option>
-            }
-          </select>
-        </div>
-        }
-        @if (nouveauRole === 'parent') {
-        <div class="champ">
-          <label>Téléphone</label>
-          <input type="text" [(ngModel)]="nouveauTelephone" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: 771234567" />
-        </div>
-        <div class="champ">
-          <label>Profession</label>
-          <input type="text" [(ngModel)]="nouveauProfession" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Ingénieur" />
-        </div>
-        <div class="champ">
-          <label>Adresse</label>
-          <input type="text" [(ngModel)]="nouveauAdresse" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Dakar, Plateau" />
-        </div>
-        <div class="champ">
-          <label>Lien parental</label>
-          <input type="text" [(ngModel)]="nouveauLienParents" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Père, Mère, Tuteur" />
-        </div>
-        <div class="champ">
-          <label>Rechercher un étudiant</label>
-          <input type="text" [(ngModel)]="rechercheEtudiant" [ngModelOptions]="{standalone:true}"
-            placeholder="Tapez le nom ou matricule..." (input)="rechercherEtudiant()" />
-          @if (etudiantsSuggestions.length > 0) {
-          <div class="suggestions-liste">
-            @for (e of etudiantsSuggestions; track e.id) {
-            <div class="suggestion-item" (click)="ajouterEtudiant(e)">
-              {{ e.prenom }} {{ e.nom }} — {{ e.etudiant?.matricule }}
+        @if (formulaireOuvert()) {
+        <div class="formulaire-nouveau-compte">
+          <div class="champ">
+            <label>Prénom</label>
+            <input type="text" [(ngModel)]="nouveauPrenom" [ngModelOptions]="{standalone: true}" />
+          </div>
+          <div class="champ">
+            <label>Nom</label>
+            <input type="text" [(ngModel)]="nouveauNom" [ngModelOptions]="{standalone: true}" />
+          </div>
+          <div class="champ">
+            <label>E-mail</label>
+            <input type="email" [(ngModel)]="nouvelEmail" [ngModelOptions]="{standalone: true}" />
+          </div>
+          <div class="champ">
+            <label>Rôle</label>
+            <select [(ngModel)]="nouveauRole" [ngModelOptions]="{standalone: true}">
+              @for (r of roles; track r) {
+              <option [value]="r">{{ r }}</option>
+              }
+            </select>
+          </div>
+          @if (nouveauRole === 'enseignant') {
+          <div class="champ">
+            <label>Spécialité</label>
+            <input type="text" [(ngModel)]="nouveauSpecialite" [ngModelOptions]="{standalone:true}" placeholder="Ex: Informatique" />
+          </div>
+          <div class="champ">
+            <label>Grade</label>
+            <input type="text" [(ngModel)]="nouveauGrade" [ngModelOptions]="{standalone:true}" placeholder="Ex: Docteur" />
+          </div>
+          }
+          @if (nouveauRole === 'etudiant') {
+          <div class="champ">
+            <label>Date de naissance</label>
+            <input type="date" [(ngModel)]="nouveauDateNaissance" [ngModelOptions]="{standalone:true}" />
+          </div>
+          <div class="champ">
+            <label>Lieu de naissance</label>
+            <input type="text" [(ngModel)]="nouveauLieuNaissance" [ngModelOptions]="{standalone:true}" placeholder="Ex: Dakar" />
+          </div>
+          <div class="champ">
+            <label>Sexe</label>
+            <select [(ngModel)]="nouveauSexe" [ngModelOptions]="{standalone:true}">
+              <option value="">-- Choisir --</option>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
+            </select>
+          </div>
+          <div class="champ">
+            <label>Filière</label>
+            <select [(ngModel)]="nouveauFiliere" [ngModelOptions]="{standalone:true}">
+              <option value="">-- Choisir une filière --</option>
+              @for (f of filieres(); track f.id) {
+              <option [value]="f.nom">{{ f.nom }}</option>
+              }
+            </select>
+          </div>
+          <div class="champ">
+            <label>Classe</label>
+            <select [(ngModel)]="nouveauClasseId" [ngModelOptions]="{standalone:true}">
+              <option value="">-- Choisir une classe --</option>
+              @for (c of classes(); track c.id) {
+              <option [value]="c.id">{{ c.nomClasse }}</option>
+              }
+            </select>
+          </div>
+          }
+          @if (nouveauRole === 'parent') {
+          <div class="champ">
+            <label>Téléphone</label>
+            <input type="text" [(ngModel)]="nouveauTelephone" [ngModelOptions]="{standalone:true}" placeholder="Ex: 771234567" />
+          </div>
+          <div class="champ">
+            <label>Profession</label>
+            <input type="text" [(ngModel)]="nouveauProfession" [ngModelOptions]="{standalone:true}" placeholder="Ex: Ingénieur" />
+          </div>
+          <div class="champ">
+            <label>Adresse</label>
+            <input type="text" [(ngModel)]="nouveauAdresse" [ngModelOptions]="{standalone:true}" placeholder="Ex: Dakar, Plateau" />
+          </div>
+          <div class="champ">
+            <label>Lien parental</label>
+            <input type="text" [(ngModel)]="nouveauLienParents" [ngModelOptions]="{standalone:true}" placeholder="Ex: Père, Mère, Tuteur" />
+          </div>
+          <div class="champ">
+            <label>Rechercher un étudiant</label>
+            <input type="text" [(ngModel)]="rechercheEtudiant" [ngModelOptions]="{standalone:true}"
+              placeholder="Tapez le nom ou matricule..." (input)="rechercherEtudiant()" />
+            @if (etudiantsSuggestions.length > 0) {
+            <div class="suggestions-liste">
+              @for (e of etudiantsSuggestions; track e.id) {
+              <div class="suggestion-item" (click)="ajouterEtudiant(e)">
+                {{ e.prenom }} {{ e.nom }} — {{ e.etudiant?.matricule }}
+              </div>
+              }
             </div>
             }
           </div>
+          @if (etudiantsSelectionnes.length > 0) {
+          <div class="champ">
+            <label>Étudiants liés</label>
+            <div class="etudiants-selectionnes">
+              @for (e of etudiantsSelectionnes; track e.id) {
+              <span class="badge-etudiant">
+                {{ e.prenom }} {{ e.nom }}
+                <button type="button" (click)="retirerEtudiant(e)">✕</button>
+              </span>
+              }
+            </div>
+          </div>
           }
-        </div>
-        @if (etudiantsSelectionnes.length > 0) {
-        <div class="champ">
-          <label>Étudiants liés</label>
-          <div class="etudiants-selectionnes">
-            @for (e of etudiantsSelectionnes; track e.id) {
-            <span class="badge-etudiant">
-              {{ e.prenom }} {{ e.nom }}
-              <button type="button" (click)="retirerEtudiant(e)">✕</button>
-            </span>
-            }
+          }
+          @if (nouveauRole === 'chef_departement') {
+          <div class="champ">
+            <label>Spécialité</label>
+            <input type="text" [(ngModel)]="nouveauSpecialite" [ngModelOptions]="{standalone:true}" placeholder="Ex: Génie Logiciel" />
+          </div>
+          <div class="champ">
+            <label>Grade</label>
+            <input type="text" [(ngModel)]="nouveauGrade" [ngModelOptions]="{standalone:true}" placeholder="Ex: Professeur" />
+          </div>
+          <div class="champ">
+            <label>Mandat</label>
+            <input type="text" [(ngModel)]="nouveauMandat" [ngModelOptions]="{standalone:true}" placeholder="Ex: 2024-2026" />
+          </div>
+          <div class="champ">
+            <label>Date début</label>
+            <input type="date" [(ngModel)]="nouveauDateDebut" [ngModelOptions]="{standalone:true}" />
+          </div>
+          <div class="champ">
+            <label>Date fin</label>
+            <input type="date" [(ngModel)]="nouveauDateFin" [ngModelOptions]="{standalone:true}" />
+          </div>
+          }
+          <div class="actions-formulaire">
+            <button type="button" class="bouton-annuler" (click)="basculerFormulaire()">Annuler</button>
+            <button type="button" class="bouton-principal" (click)="creerCompte()">Créer le compte</button>
           </div>
         </div>
         }
+
+        @if (roleFiltre() === 'etudiant') {
+        @for (cl of classesEtudiants(); track cl.nom) {
+        <div style="margin-bottom:1.5rem;">
+          <h4 style="padding:0.5rem 1rem;background:#f0f4ff;border-radius:6px;margin-bottom:0.5rem;color:#1a56db;">
+            {{ cl.nom }} <span style="font-weight:normal;font-size:0.85rem;color:#666;">({{ cl.etudiants.length }} étudiant(s))</span>
+          </h4>
+          <table class="table-comptes">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Matricule</th>
+                <th>E-mail</th>
+                <th>Détails</th>
+                <th class="colonne-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of cl.etudiants; track c.id) {
+              <tr>
+                <td class="nom-fort">{{ c.nom }} {{ c.prenom }}</td>
+                <td>{{ c.etudiant?.matricule }}</td>
+                <td>{{ c.email }}</td>
+                <td class="colonne-actions">
+                  <button type="button" class="bouton-icone" (click)="voirDetails(c)" title="Voir détails">👁️</button>
+                </td>
+                <td class="colonne-actions">
+                  <button type="button" class="bouton-icone" (click)="ouvrirEdition(c)" title="Modifier">✏️</button>
+                  <button type="button" class="bouton-icone" (click)="toggleActif(c)"
+                    [title]="c.actif ? 'Désactiver' : 'Activer'" [style.opacity]="c.actif ? '1' : '0.4'">
+                    {{ c.actif ? '✅' : '🚫' }}
+                  </button>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
         }
-        @if (nouveauRole === 'chef_departement') {
-        <div class="champ">
-          <label>Spécialité</label>
-          <input type="text" [(ngModel)]="nouveauSpecialite" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Génie Logiciel" />
-        </div>
-        <div class="champ">
-          <label>Grade</label>
-          <input type="text" [(ngModel)]="nouveauGrade" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Professeur" />
-        </div>
-        <div class="champ">
-          <label>Mandat</label>
-          <input type="text" [(ngModel)]="nouveauMandat" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: 2024-2026" />
-        </div>
-        <div class="champ">
-          <label>Date début</label>
-          <input type="date" [(ngModel)]="nouveauDateDebut" [ngModelOptions]="{standalone:true}" />
-        </div>
-        <div class="champ">
-          <label>Date fin</label>
-          <input type="date" [(ngModel)]="nouveauDateFin" [ngModelOptions]="{standalone:true}" />
-        </div>
-        }
-        <div class="actions-formulaire">
-          <button type="button" class="bouton-annuler" (click)="basculerFormulaire()">Annuler</button>
-          <button type="button" class="bouton-principal" (click)="creerCompte()">Créer le compte</button>
-        </div>
-      </div>
-      }
-      @if (roleFiltre() === 'etudiant') {
-      @for (cl of classesEtudiants(); track cl.nom) {
-      <div style="margin-bottom:1.5rem;">
-        <h4 style="padding:0.5rem 1rem;background:#f0f4ff;border-radius:6px;margin-bottom:0.5rem;color:#1a56db;">
-          {{ cl.nom }} <span style="font-weight:normal;font-size:0.85rem;color:#666;">({{ cl.etudiants.length }}
-            étudiant(s))</span>
-        </h4>
+        } @else {
         <table class="table-comptes">
           <thead>
             <tr>
               <th>Nom</th>
-              <th>Matricule</th>
               <th>E-mail</th>
+              <th>Rôle</th>
               <th>Détails</th>
               <th class="colonne-actions">Actions</th>
             </tr>
           </thead>
           <tbody>
-            @for (c of cl.etudiants; track c.id) {
+            @for (c of comptesFiltres(); track c.id) {
             <tr>
-              <td class="nom-fort">{{ c.nom }} {{ c.prenom }}</td>
-              <td>{{ c.etudiant?.matricule }}</td>
+              @if (compteEnEdition() === c.id) {
+              <td><input type="text" [(ngModel)]="nomEdite" [ngModelOptions]="{standalone: true}" class="input-edition" /></td>
               <td>{{ c.email }}</td>
+              <td>
+                <select [(ngModel)]="roleEdite" [ngModelOptions]="{standalone: true}" class="input-edition">
+                  @for (r of roles; track r) {
+                  <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+              </td>
+              <td><input type="text" [(ngModel)]="detailsEdites" [ngModelOptions]="{standalone: true}" class="input-edition" /></td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-principal" (click)="enregistrerEdition(c)">Enregistrer</button>
+                <button type="button" class="bouton-annuler" (click)="annulerEditionCompte()">Annuler</button>
+              </td>
+              } @else {
+              <td class="nom-fort">{{ c.nom }} {{ c.prenom }}</td>
+              <td>{{ c.email }}</td>
+              <td><span class="badge-role">{{ c.role }}</span></td>
               <td class="colonne-actions">
                 <button type="button" class="bouton-icone" (click)="voirDetails(c)" title="Voir détails">👁️</button>
               </td>
@@ -248,503 +375,465 @@
                   [title]="c.actif ? 'Désactiver' : 'Activer'" [style.opacity]="c.actif ? '1' : '0.4'">
                   {{ c.actif ? '✅' : '🚫' }}
                 </button>
+                <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerCompte(c)" title="Supprimer">🗑️</button>
+              </td>
+              }
+            </tr>
+            }
+          </tbody>
+        </table>
+        }
+      </section>
+      }
+
+      <!-- ══ IMPORT LÉA ══ -->
+      @if (sectionActive() === 'import') {
+      <h1 class="titre-page">Import depuis Léa</h1>
+      <p style="color:#667085;margin-bottom:1.5rem;font-size:0.9rem;">
+        Importez les données exportées depuis Léa (étudiants, inscriptions, classes, modules) au format Excel (.xlsx).
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;">
+
+        <!-- Étudiants -->
+        <section class="carte" style="margin:0;">
+          <h2 class="titre-carte">👨‍🎓 Étudiants</h2>
+          <p class="description-carte" style="margin-bottom:1rem;">Colonnes attendues : prénom, nom, email, matricule, dateNaissance, lieuNaissance, sexe, filière, classe</p>
+          <label class="bouton-import-label">
+            <input type="file" accept=".xlsx,.xls,.csv" style="display:none" (change)="importerFichier($event, 'etudiants')" />
+            📂 Choisir un fichier Excel
+          </label>
+          @if (importEtat()['etudiants']) {
+          <p [style.color]="importEtat()['etudiants'].ok ? '#166534' : '#b91c1c'" style="margin-top:0.75rem;font-size:0.85rem;">
+            {{ importEtat()['etudiants'].message }}
+          </p>
+          }
+        </section>
+
+        <!-- Classes -->
+        <section class="carte" style="margin:0;">
+          <h2 class="titre-carte">🏫 Classes</h2>
+          <p class="description-carte" style="margin-bottom:1rem;">Colonnes attendues : nomClasse, niveau, filière</p>
+          <label class="bouton-import-label">
+            <input type="file" accept=".xlsx,.xls,.csv" style="display:none" (change)="importerFichier($event, 'classes')" />
+            📂 Choisir un fichier Excel
+          </label>
+          @if (importEtat()['classes']) {
+          <p [style.color]="importEtat()['classes'].ok ? '#166534' : '#b91c1c'" style="margin-top:0.75rem;font-size:0.85rem;">
+            {{ importEtat()['classes'].message }}
+          </p>
+          }
+        </section>
+
+        <!-- Modules -->
+        <section class="carte" style="margin:0;">
+          <h2 class="titre-carte">📚 Modules</h2>
+          <p class="description-carte" style="margin-bottom:1rem;">Colonnes attendues : libelle, coefficient, volumeHoraire, UE</p>
+          <label class="bouton-import-label">
+            <input type="file" accept=".xlsx,.xls,.csv" style="display:none" (change)="importerFichier($event, 'modules')" />
+            📂 Choisir un fichier Excel
+          </label>
+          @if (importEtat()['modules']) {
+          <p [style.color]="importEtat()['modules'].ok ? '#166534' : '#b91c1c'" style="margin-top:0.75rem;font-size:0.85rem;">
+            {{ importEtat()['modules'].message }}
+          </p>
+          }
+        </section>
+
+        <!-- Inscriptions -->
+        <section class="carte" style="margin:0;">
+          <h2 class="titre-carte">📝 Inscriptions</h2>
+          <p class="description-carte" style="margin-bottom:1rem;">Colonnes attendues : matricule, classe, anneeAcademique</p>
+          <label class="bouton-import-label">
+            <input type="file" accept=".xlsx,.xls,.csv" style="display:none" (change)="importerFichier($event, 'inscriptions')" />
+            📂 Importer La liste des inscriptions
+          </label>
+          @if (importEtat()['inscriptions']) {
+          <p [style.color]="importEtat()['inscriptions'].ok ? '#166534' : '#b91c1c'" style="margin-top:0.75rem;font-size:0.85rem;">
+            {{ importEtat()['inscriptions'].message }}
+          </p>
+          }
+        </section>
+
+        <!-- UE -->
+        <section class="carte" style="margin:0;">
+          <h2 class="titre-carte">🗂️ Unités d'Enseignement</h2>
+          <p class="description-carte" style="margin-bottom:1rem;">Colonnes attendues : libelle, credits</p>
+          <label class="bouton-import-label">
+            <input type="file" accept=".xlsx,.xls,.csv" style="display:none" (change)="importerFichier($event, 'ue')" />
+            📂 Importer les UE
+          </label>
+          @if (importEtat()['ue']) {
+          <p [style.color]="importEtat()['ue'].ok ? '#166534' : '#b91c1c'" style="margin-top:0.75rem;font-size:0.85rem;">
+            {{ importEtat()['ue'].message }}
+          </p>
+          }
+        </section>
+
+      </div>
+      }
+
+      <!-- ══ DONNÉES DE RÉFÉRENCE ══ -->
+      @if (sectionActive() === 'donnees') {
+      <h1 class="titre-page">Données de référence</h1>
+      <section class="carte">
+        <div class="entete-gestion-comptes">
+          <div>
+            <h2 class="titre-carte">Gérer les référentiels</h2>
+            <p class="description-carte">Départements, filières, classes, modules, UE et semestres.</p>
+          </div>
+          <div class="controles-gestion-comptes">
+            @for (onglet of onglets; track onglet) {
+            <button type="button" [class]="ongletActif() === onglet ? 'bouton-principal' : 'bouton-annuler'"
+              (click)="ongletActif.set(onglet)">{{ onglet }}</button>
+            }
+          </div>
+        </div>
+
+        @if (ongletActif() === 'Départements') {
+        <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
+          <div class="champ">
+            <label>Nom du département</label>
+            <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Génie Logiciel" />
+          </div>
+          <div class="actions-formulaire">
+            <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
+            @if (refEnEdition) {
+            <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
+            }
+          </div>
+        </div>
+        <table class="table-comptes">
+          <thead><tr><th>Nom</th><th style="text-align:right;padding-right:1rem;">Actions</th></tr></thead>
+          <tbody>
+            @for (d of departements(); track d.id) {
+            <tr>
+              <td class="nom-fort">{{ d.nom }}</td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-icone" (click)="modifierRef(d)">✏️</button>
+                <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerRef('departements', d.id)">🗑️</button>
               </td>
             </tr>
             }
           </tbody>
         </table>
-      </div>
-      }
-      } @else {
-      <table class="table-comptes">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>E-mail</th>
-            <th>Rôle</th>
-            <th>Détails</th>
-            <th class="colonne-actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of comptesFiltres(); track c.id) {
-          <tr>
-            @if (compteEnEdition() === c.id) {
-            <td><input type="text" [(ngModel)]="nomEdite" [ngModelOptions]="{standalone: true}" class="input-edition" />
-            </td>
-            <td>{{ c.email }}</td>
-            <td>
-              <select [(ngModel)]="roleEdite" [ngModelOptions]="{standalone: true}" class="input-edition">
-                @for (r of roles; track r) {
-                <option [value]="r">{{ r }}</option>
-                }
-              </select>
-            </td>
-            <td><input type="text" [(ngModel)]="detailsEdites" [ngModelOptions]="{standalone: true}"
-                class="input-edition" /></td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-principal" (click)="enregistrerEdition(c)">Enregistrer</button>
-              <button type="button" class="bouton-annuler" (click)="annulerEditionCompte()">Annuler</button>
-            </td>
-            } @else {
-            <td class="nom-fort">{{ c.nom }} {{ c.prenom }}</td>
-            <td>{{ c.email }}</td>
-            <td><span class="badge-role">{{ c.role }}</span></td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-icone" (click)="voirDetails(c)" title="Voir détails">👁️</button>
-            </td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-icone" (click)="ouvrirEdition(c)" title="Modifier">✏️</button>
-              <button type="button" class="bouton-icone" (click)="toggleActif(c)"
-                [title]="c.actif ? 'Désactiver' : 'Activer'" [style.opacity]="c.actif ? '1' : '0.4'">
-                {{ c.actif ? '✅' : '🚫' }}
-              </button>
-              <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerCompte(c)"
-                title="Supprimer">🗑️</button>
-            </td>
+        }
+
+        @if (ongletActif() === 'Filières') {
+        <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
+          <div class="champ">
+            <label>Nom de la filière</label>
+            <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Génie Logiciel" />
+          </div>
+          <div class="champ">
+            <label>Diplôme</label>
+            <input type="text" [(ngModel)]="champDiplome" [ngModelOptions]="{standalone:true}" placeholder="Ex: Licence" />
+          </div>
+          <div class="champ">
+            <label>Département</label>
+            <select [(ngModel)]="champDepartementId" [ngModelOptions]="{standalone:true}">
+              @for (d of departements(); track d.id) {
+              <option [value]="d.id">{{ d.nom }}</option>
+              }
+            </select>
+          </div>
+          <div class="actions-formulaire">
+            <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
+            @if (refEnEdition) {
+            <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
             }
-          </tr>
-          }
-        </tbody>
-      </table>
-      }
-    </section>
-
-    <section class="carte">
-      <div class="entete-gestion-comptes">
-        <div>
-          <h2 class="titre-carte">Données de référence</h2>
-          <p class="description-carte">Gérer les départements, filières, classes, modules, UE et semestres.</p>
+          </div>
         </div>
-        <div class="controles-gestion-comptes">
-          @for (onglet of onglets; track onglet) {
-          <button type="button" [class]="ongletActif() === onglet ? 'bouton-principal' : 'bouton-annuler'"
-            (click)="ongletActif.set(onglet)">{{ onglet }}</button>
-          }
-        </div>
-      </div>
-
-      @if (ongletActif() === 'Départements') {
-      <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
-        <div class="champ">
-          <label>Nom du département</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Génie Logiciel" />
-        </div>
-        <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
-          @if (refEnEdition) {
-          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
-          }
-        </div>
-      </div>
-      <table class="table-comptes">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th style="text-align:right;padding-right:1rem;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (d of departements(); track d.id) {
-          <tr>
-            <td class="nom-fort">{{ d.nom }}</td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-icone" (click)="modifierRef(d)">✏️</button>
-              <button type="button" class="bouton-icone bouton-icone-danger"
-                (click)="supprimerRef('departements', d.id)">🗑️</button>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
-      }
-
-      @if (ongletActif() === 'Filières') {
-      <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
-        <div class="champ">
-          <label>Nom de la filière</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Génie Logiciel" />
-        </div>
-        <div class="champ">
-          <label>Diplôme</label>
-          <input type="text" [(ngModel)]="champDiplome" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Licence" />
-        </div>
-        <div class="champ">
-          <label>Département</label>
-          <select [(ngModel)]="champDepartementId" [ngModelOptions]="{standalone:true}">
-            @for (d of departements(); track d.id) {
-            <option [value]="d.id">{{ d.nom }}</option>
-            }
-          </select>
-        </div>
-        <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
-          @if (refEnEdition) {
-          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
-          }
-        </div>
-      </div>
-      <table class="table-comptes">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Diplôme</th>
-            <th>Département</th>
-            <th style="text-align:right;padding-right:1rem;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (f of filieres(); track f.id) {
-          <tr>
-            <td class="nom-fort">{{ f.nom }}</td>
-            <td>{{ f.diplome }}</td>
-            <td>{{ f.departement?.nom }}</td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-icone" (click)="modifierRef(f)">✏️</button>
-              <button type="button" class="bouton-icone bouton-icone-danger"
-                (click)="supprimerRef('filieres', f.id)">🗑️</button>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
-      }
-
-      @if (ongletActif() === 'Classes') {
-      <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
-        <div class="champ">
-          <label>Nom de la classe</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: L1-GL" />
-        </div>
-        <div class="champ">
-          <label>Niveau</label>
-          <input type="text" [(ngModel)]="champNiveau" [ngModelOptions]="{standalone:true}" placeholder="Ex: L1" />
-        </div>
-        <div class="champ">
-          <label>Filière</label>
-          <select [(ngModel)]="champFiliereId" [ngModelOptions]="{standalone:true}">
+        <table class="table-comptes">
+          <thead><tr><th>Nom</th><th>Diplôme</th><th>Département</th><th style="text-align:right;padding-right:1rem;">Actions</th></tr></thead>
+          <tbody>
             @for (f of filieres(); track f.id) {
-            <option [value]="f.id">{{ f.nom }}</option>
+            <tr>
+              <td class="nom-fort">{{ f.nom }}</td>
+              <td>{{ f.diplome }}</td>
+              <td>{{ f.departement?.nom }}</td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-icone" (click)="modifierRef(f)">✏️</button>
+                <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerRef('filieres', f.id)">🗑️</button>
+              </td>
+            </tr>
             }
-          </select>
-        </div>
-        <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
-          @if (refEnEdition) {
-          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
-          }
-        </div>
-      </div>
-      <table class="table-comptes">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Niveau</th>
-            <th>Filière</th>
-            <th style="text-align:right;padding-right:1rem;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of classes(); track c.id) {
-          <tr>
-            <td class="nom-fort">{{ c.nomClasse }}</td>
-            <td>{{ c.niveau }}</td>
-            <td>{{ c.filiere?.nom }}</td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-icone" (click)="modifierRef(c)">✏️</button>
-              <button type="button" class="bouton-icone bouton-icone-danger"
-                (click)="supprimerRef('classes', c.id)">🗑️</button>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
-      }
+          </tbody>
+        </table>
+        }
 
-      @if (ongletActif() === 'Semestres') {
-      <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
-        <div class="champ">
-          <label>Libellé</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Semestre 1" />
-        </div>
-        <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
-          @if (refEnEdition) {
-          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
-          }
-        </div>
-      </div>
-      <table class="table-comptes">
-        <thead>
-          <tr>
-            <th>Libellé</th>
-            <th style="text-align:right;padding-right:1rem;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (s of semestres(); track s.id) {
-          <tr>
-            <td class="nom-fort">{{ s.libelle }}</td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-icone" (click)="modifierRef(s)">✏️</button>
-              <button type="button" class="bouton-icone bouton-icone-danger"
-                (click)="supprimerRef('semestres', s.id)">🗑️</button>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
-      }
+        @if (ongletActif() === 'Classes') {
+        <p style="color:#667085;font-size:0.88rem;margin-bottom:1rem;">Les classes sont gérées via l'import Excel (Import Léa).</p>
+        <table class="table-comptes">
+          <thead><tr><th>Nom</th><th>Niveau</th><th>Filière</th><th style="text-align:right;padding-right:1rem;">Actions</th></tr></thead>
+          <tbody>
+            @for (c of classes(); track c.id) {
+            <tr>
+              <td class="nom-fort">{{ c.nomClasse }}</td>
+              <td>{{ c.niveau }}</td>
+              <td>{{ c.filiere?.nom }}</td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-icone" (click)="modifierRef(c)">✏️</button>
+                <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerRef('classes', c.id)">🗑️</button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+        }
 
-      @if (ongletActif() === 'UE') {
-      <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
-        <div class="champ">
-          <label>Libellé</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: UE Programmation" />
+        @if (ongletActif() === 'Semestres') {
+        <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
+          <div class="champ">
+            <label>Libellé</label>
+            <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}" placeholder="Ex: Semestre 1" />
+          </div>
+          <div class="actions-formulaire">
+            <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+ Ajouter' }}</button>
+            @if (refEnEdition) {
+            <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
+            }
+          </div>
         </div>
-        <div class="champ">
-          <label>Crédits</label>
-          <input type="number" [(ngModel)]="champCredits" [ngModelOptions]="{standalone:true}" />
-        </div>
-        <div class="champ">
-          <label>Semestre</label>
-          <select [(ngModel)]="champSemestreId" [ngModelOptions]="{standalone:true}">
+        <table class="table-comptes">
+          <thead><tr><th>Libellé</th><th style="text-align:right;padding-right:1rem;">Actions</th></tr></thead>
+          <tbody>
             @for (s of semestres(); track s.id) {
-            <option [value]="s.id">{{ s.libelle }}</option>
+            <tr>
+              <td class="nom-fort">{{ s.libelle }}</td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-icone" (click)="modifierRef(s)">✏️</button>
+                <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerRef('semestres', s.id)">🗑️</button>
+              </td>
+            </tr>
             }
-          </select>
-        </div>
-        <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
-          @if (refEnEdition) {
-          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
-          }
-        </div>
-      </div>
-      <table class="table-comptes">
-        <thead>
-          <tr>
-            <th>Libellé</th>
-            <th>Crédits</th>
-            <th>Semestre</th>
-            <th style="text-align:right;padding-right:1rem;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (u of ues(); track u.id) {
-          <tr>
-            <td class="nom-fort">{{ u.libelle }}</td>
-            <td>{{ u.credits }}</td>
-            <td>{{ u.semestre?.libelle }}</td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-icone" (click)="modifierRef(u)">✏️</button>
-              <button type="button" class="bouton-icone bouton-icone-danger"
-                (click)="supprimerRef('ues', u.id)">🗑️</button>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
-      }
+          </tbody>
+        </table>
+        }
 
-      @if (ongletActif() === 'Modules') {
-      <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
-        <div class="champ">
-          <label>Libellé</label>
-          <input type="text" [(ngModel)]="champNom" [ngModelOptions]="{standalone:true}"
-            placeholder="Ex: Algorithmique" />
-        </div>
-        <div class="champ">
-          <label>Coefficient</label>
-          <input type="number" [(ngModel)]="champCoefficient" [ngModelOptions]="{standalone:true}" />
-        </div>
-        <div class="champ">
-          <label>Volume Horaire</label>
-          <input type="number" [(ngModel)]="champVolumeHoraire" [ngModelOptions]="{standalone:true}" />
-        </div>
-        <div class="champ">
-          <label>UE</label>
-          <select [(ngModel)]="champUeId" [ngModelOptions]="{standalone:true}">
+        @if (ongletActif() === 'UE') {
+        <p style="color:#667085;font-size:0.88rem;margin-bottom:1rem;">Les UE sont gérées via l'import Excel (Import Léa).</p>
+        <table class="table-comptes">
+          <thead><tr><th>Libellé</th><th>Crédits</th><th>Semestre</th><th style="text-align:right;padding-right:1rem;">Actions</th></tr></thead>
+          <tbody>
             @for (u of ues(); track u.id) {
-            <option [value]="u.id">{{ u.libelle }}</option>
+            <tr>
+              <td class="nom-fort">{{ u.libelle }}</td>
+              <td>{{ u.credits }}</td>
+              <td>{{ u.semestre?.libelle }}</td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-icone" (click)="modifierRef(u)">✏️</button>
+                <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerRef('ues', u.id)">🗑️</button>
+              </td>
+            </tr>
             }
-          </select>
-        </div>
-        <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="ajouterRef()">{{ refEnEdition ? 'Modifier' : '+
-            Ajouter' }}</button>
-          @if (refEnEdition) {
-          <button type="button" class="bouton-annuler" (click)="annulerModif()">Annuler</button>
-          }
-        </div>
-      </div>
-      <table class="table-comptes">
-        <thead>
-          <tr>
-            <th>Libellé</th>
-            <th>Coefficient</th>
-            <th>UE</th>
-            <th>Enseignants</th>
-            <th style="text-align:right;padding-right:1rem;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (m of modules(); track m.id) {
-          <tr>
-            <td class="nom-fort">{{ m.libelle }}</td>
-            <td>{{ m.coefficient }}</td>
-            <td>{{ m.ue?.libelle }}</td>
-            <td>
-              @if (m.enseignants && m.enseignants.length > 0) {
-              @for (e of m.enseignants; track e.id) {
-              <span class="badge-etudiant" style="margin:2px;">{{ e.user?.prenom }} {{ e.user?.nom }}</span>
-              }
-              } @else {
-              <span style="color:#aaa;font-size:0.85rem;">Aucun</span>
-              }
-            </td>
-            <td class="colonne-actions">
-              <button type="button" class="bouton-icone" (click)="ouvrirAffectation(m)"
-                title="Affecter enseignants">👨‍🏫</button>
-              <button type="button" class="bouton-icone" (click)="modifierRef(m)">✏️</button>
-              <button type="button" class="bouton-icone bouton-icone-danger"
-                (click)="supprimerRef('matieres', m.id)">🗑️</button>
-            </td>
-          </tr>
-          }
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+        }
+
+        @if (ongletActif() === 'Modules') {
+        <p style="color:#667085;font-size:0.88rem;margin-bottom:1rem;">Les modules sont gérés via l'import Excel (Import Léa).</p>
+        <table class="table-comptes">
+          <thead>
+            <tr><th>Libellé</th><th>Coefficient</th><th>UE</th><th>Enseignants</th><th style="text-align:right;padding-right:1rem;">Actions</th></tr>
+          </thead>
+          <tbody>
+            @for (m of modules(); track m.id) {
+            <tr>
+              <td class="nom-fort">{{ m.libelle }}</td>
+              <td>{{ m.coefficient }}</td>
+              <td>{{ m.ue?.libelle }}</td>
+              <td>
+                @if (m.enseignants && m.enseignants.length > 0) {
+                @for (e of m.enseignants; track e.id) {
+                <span class="badge-etudiant" style="margin:2px;">{{ e.user?.prenom }} {{ e.user?.nom }}</span>
+                }
+                } @else {
+                <span style="color:#aaa;font-size:0.85rem;">Aucun</span>
+                }
+              </td>
+              <td class="colonne-actions">
+                <button type="button" class="bouton-icone" (click)="ouvrirAffectation(m)" title="Affecter enseignants">👨‍🏫</button>
+                <button type="button" class="bouton-icone" (click)="modifierRef(m)">✏️</button>
+                <button type="button" class="bouton-icone bouton-icone-danger" (click)="supprimerRef('matieres', m.id)">🗑️</button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+        }
+      </section>
       }
-    </section>
 
-    <section class="carte">
-      <div class="entete-gestion-comptes">
-        <div>
-          <h2 class="titre-carte">Journal d'audit global</h2>
-          <p class="description-carte">Toutes les interventions horodatées, tous rôles confondus.</p>
+      <!-- ══ BULLETINS ══ -->
+      @if (sectionActive() === 'bulletins') {
+      <h1 class="titre-page">Génération des bulletins</h1>
+      <section class="carte">
+        <div class="entete-gestion-comptes">
+          <div>
+            <h2 class="titre-carte">📋 Génération des bulletins</h2>
+            <p class="description-carte">Calculer et générer les bulletins de tous les étudiants pour un semestre donné. Les étudiants et parents reçoivent une notification automatique.</p>
+          </div>
         </div>
-        <button type="button" class="bouton-annuler" (click)="purgerJournal()">Purger</button>
-      </div>
-           <table class="table-audit">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Étudiant</th>
-            <th>Matière</th>
-            <th>Ancienne note</th>
-            <th>Nouvelle note</th>
-            <th>Modifié par</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (e of journal(); track e.id) {
-          <tr>
-            <td>{{ e.dateAction | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>{{ e.note?.etudiant?.user?.prenom }} {{ e.note?.etudiant?.user?.nom }}</td>
-            <td>{{ e.note?.matiere?.libelle }}</td>
-            <td style="color:#b91c1c;font-weight:600;">{{ e.ancienneValeur }}/20</td>
-            <td style="color:#166534;font-weight:600;">{{ e.nouvelleValeur }}/20</td>
-            <td>{{ e.user?.prenom }} {{ e.user?.nom }} <span class="role-acteur">({{ e.user?.role }})</span></td>
-            <td>{{ e.typeAction }}</td>
-          </tr>
+        <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
+          <div class="champ">
+            <label>Semestre</label>
+            <select [ngModel]="semestreSelectionneGeneration()"
+              (ngModelChange)="semestreSelectionneGeneration.set($event); $event ? saveSemestreSession($event) : clearSemestreSession()"
+              [ngModelOptions]="{standalone:true}">
+              <option value="">-- Sélectionner un semestre --</option>
+              @for (s of semestres(); track s.id) {
+              <option [value]="s.id">{{ s.libelle }}</option>
+              }
+            </select>
+          </div>
+          <div class="actions-formulaire">
+            <button type="button" class="bouton-principal" (click)="genererBulletins()" [disabled]="generationEnCours()">
+              @if (generationEnCours()) { ⏳ Génération en cours… }
+              @else { 📋 {{ bulletinsExistants().length > 0 ? 'Regénérer les bulletins' : 'Générer les bulletins' }} }
+            </button>
+          </div>
+          @if (generationErreur()) {
+          <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:1rem;color:#b91c1c;margin-top:0.5rem;">
+            ⚠️ {{ generationErreur() }}
+          </div>
           }
-        </tbody>
-      </table>
-    </section>
-    <section class="carte">
-      <div class="entete-gestion-comptes">
-        <div>
-          <h2 class="titre-carte">📋 Génération des bulletins</h2>
-          <p class="description-carte">Calculer et générer les bulletins de tous les étudiants pour un semestre donné.
-            Les étudiants et parents reçoivent une notification automatique.</p>
+          @if (generationResultat() || bulletinsExistants().length > 0) {
+          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:1rem;margin-top:0.5rem;">
+            <p style="color:#166534;font-weight:600;margin-bottom:0.75rem;">
+              ✅ {{ generationResultat()?.message ?? (bulletinsExistants().length + ' bulletin(s) généré(s) pour ce semestre') }}
+            </p>
+            <table class="table-comptes">
+              <thead>
+                <tr><th>Étudiant</th><th>Moyenne générale</th><th>Mention</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                @if (generationResultat()) {
+                @for (r of generationResultat().resultats; track r.etudiant) {
+                <tr>
+                  <td class="nom-fort">{{ r.etudiant }}</td>
+                  <td>{{ r.moyenne }}/20</td>
+                  <td><span class="badge-role">{{ r.mention }}</span></td>
+                  <td><button type="button" class="bouton-icone" (click)="voirBulletinAdmin(r)" title="Voir bulletin">📄</button></td>
+                </tr>
+                }
+                } @else {
+                @for (b of bulletinsExistants(); track b.id) {
+                <tr>
+                  <td class="nom-fort">{{ b.etudiant?.user?.prenom }} {{ b.etudiant?.user?.nom }}</td>
+                  <td>{{ b.moyenne_generale }}/20</td>
+                  <td><span class="badge-role">{{ b.mention }}</span></td>
+                  <td><button type="button" class="bouton-icone" (click)="bulletinVu.set(b)" title="Voir bulletin">📄</button></td>
+                </tr>
+                }
+                }
+              </tbody>
+            </table>
+          </div>
+          }
         </div>
-      </div>
+      </section>
+      }
 
-      <div class="formulaire-nouveau-compte" style="margin-bottom:1rem;">
-        <div class="champ">
-          <label>Semestre</label>
-          <select [ngModel]="semestreSelectionneGeneration()"
-            (ngModelChange)="semestreSelectionneGeneration.set($event); $event ? saveSemestreSession($event) : clearSemestreSession()"
-            [ngModelOptions]="{standalone:true}">
-            <option value="">-- Sélectionner un semestre --</option>
-            @for (s of semestres(); track s.id) {
-            <option [value]="s.id">{{ s.libelle }}</option>
-            }
-          </select>
+      <!-- ══ JOURNAL D'AUDIT ══ -->
+      @if (sectionActive() === 'journal') {
+      <h1 class="titre-page">Journal d'audit</h1>
+      <section class="carte">
+        <div class="entete-gestion-comptes">
+          <div>
+            <h2 class="titre-carte">Journal d'audit global</h2>
+            <p class="description-carte">Toutes les interventions horodatées, tous rôles confondus.</p>
+          </div>
+          <button type="button" class="bouton-annuler" (click)="purgerJournal()">Purger</button>
         </div>
-        <div class="actions-formulaire">
-          <button type="button" class="bouton-principal" (click)="genererBulletins()" [disabled]="generationEnCours()">
-            @if (generationEnCours()) {
-            ⏳ Génération en cours…
-            } @else {
-            📋 {{ bulletinsExistants().length > 0 ? 'Regénérer les bulletins' : 'Générer les bulletins' }}
+        <table class="table-audit">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Étudiant</th>
+              <th>Matière</th>
+              <th>Ancienne note</th>
+              <th>Nouvelle note</th>
+              <th>Modifié par</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of journal(); track e.id) {
+            <tr>
+              <td>{{ e.dateAction | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ e.note?.etudiant?.user?.prenom }} {{ e.note?.etudiant?.user?.nom }}</td>
+              <td>{{ e.note?.matiere?.libelle }}</td>
+              <td style="color:#b91c1c;font-weight:600;">{{ e.ancienneValeur }}/20</td>
+              <td style="color:#166534;font-weight:600;">{{ e.nouvelleValeur }}/20</td>
+              <td>{{ e.user?.prenom }} {{ e.user?.nom }} <span class="role-acteur">({{ e.user?.role }})</span></td>
+              <td>{{ e.typeAction }}</td>
+            </tr>
             }
-          </button>
-        </div>
+          </tbody>
+        </table>
+      </section>
+      }
 
-        @if (generationErreur()) {
-        <div
-          style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:1rem;color:#b91c1c;margin-top:0.5rem;">
-          ⚠️ {{ generationErreur() }}
+      <!-- ══ MON PROFIL ══ -->
+      @if (sectionActive() === 'profil') {
+      <h1 class="titre-page">Mon profil</h1>
+      <section class="carte" style="max-width:600px;">
+        @if (!profilEnEdition()) {
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+          <h2 class="titre-carte" style="margin:0;">Informations personnelles</h2>
+          <button type="button" class="bouton-annuler" (click)="profilEnEdition.set(true)">✏️ Modifier</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;">
+          <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+            <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Prénom</p>
+            <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ profil()?.prenom ?? '—' }}</p>
+          </div>
+          <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+            <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Nom</p>
+            <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ profil()?.nom ?? '—' }}</p>
+          </div>
+          <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+            <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Email</p>
+            <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">{{ profil()?.email ?? '—' }}</p>
+          </div>
+          <div style="background:#f8faff;border-radius:8px;padding:0.75rem 1rem;">
+            <p style="margin:0;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Rôle</p>
+            <p style="margin:0.25rem 0 0;font-weight:700;color:#111;">Administrateur</p>
+          </div>
+        </div>
+        } @else {
+        <h2 class="titre-carte" style="margin-bottom:1.25rem;">Modifier mon profil</h2>
+        <div class="formulaire-nouveau-compte">
+          <div class="champ">
+            <label>Prénom</label>
+            <input type="text" [(ngModel)]="prenomProfil" [ngModelOptions]="{standalone:true}" />
+          </div>
+          <div class="champ">
+            <label>Nom</label>
+            <input type="text" [(ngModel)]="nomProfil" [ngModelOptions]="{standalone:true}" />
+          </div>
+          <div class="champ">
+            <label>Nouveau mot de passe <span style="font-size:0.8rem;color:#888;">(laisser vide pour ne pas changer)</span></label>
+            <input type="password" [(ngModel)]="motDePasseProfil" [ngModelOptions]="{standalone:true}" placeholder="Nouveau mot de passe" />
+          </div>
+          <div class="champ">
+            <label>Confirmer le mot de passe</label>
+            <input type="password" [(ngModel)]="motDePasseProfilConfirme" [ngModelOptions]="{standalone:true}" placeholder="Confirmer" />
+          </div>
+          <div class="actions-formulaire">
+            <button type="button" class="bouton-annuler" (click)="profilEnEdition.set(false)">Annuler</button>
+            <button type="button" class="bouton-principal" (click)="sauvegarderProfil()">💾 Enregistrer</button>
+          </div>
         </div>
         }
+      </section>
+      }
 
-        @if (generationResultat() || bulletinsExistants().length > 0) {
-        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:1rem;margin-top:0.5rem;">
-          <p style="color:#166534;font-weight:600;margin-bottom:0.75rem;">
-            ✅ {{ generationResultat()?.message ?? (bulletinsExistants().length + ' bulletin(s) généré(s) pour ce
-            semestre') }}
-          </p>
-          <table class="table-comptes">
-            <thead>
-              <tr>
-                <th>Étudiant</th>
-                <th>Moyenne générale</th>
-                <th>Mention</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (generationResultat()) {
-              @for (r of generationResultat().resultats; track r.etudiant) {
-              <tr>
-                <td class="nom-fort">{{ r.etudiant }}</td>
-                <td>{{ r.moyenne }}/20</td>
-                <td><span class="badge-role">{{ r.mention }}</span></td>
-                <td><button type="button" class="bouton-icone" (click)="voirBulletinAdmin(r)"
-                    title="Voir bulletin">📄</button></td>
-              </tr>
-              }
-                            } @else {
-              @for (b of bulletinsExistants(); track b.id) {
-              <tr>
-                <td class="nom-fort">{{ b.etudiant?.user?.prenom }} {{ b.etudiant?.user?.nom }}</td>
-                <td>{{ b.moyenne_generale }}/20</td>
-                <td><span class="badge-role">{{ b.mention }}</span></td>
-                <td><button type="button" class="bouton-icone" (click)="bulletinVu.set(b)"
-                    title="Voir bulletin">📄</button></td>
-              </tr>
-              }
-              }
-            </tbody>
-          </table>
-        </div>
-        }
-      </div>
-    </section>
+    </main>
+  </div>
 
-  </main>
-
+  <!-- ── MODALS (inchangées) ── -->
   @if (moduleAffecter) {
   <div class="overlay-modal" (click)="fermerAffectation()">
     <div class="modal-details" (click)="$event.stopPropagation()">
@@ -756,9 +845,7 @@
         @if (enseignantsSuggestions.length > 0) {
         <div class="suggestions-liste">
           @for (e of enseignantsSuggestions; track e.id) {
-          <div class="suggestion-item" (click)="ajouterEnseignant(e)">
-            {{ e.prenom }} {{ e.nom }}
-          </div>
+          <div class="suggestion-item" (click)="ajouterEnseignant(e)">{{ e.prenom }} {{ e.nom }}</div>
           }
         </div>
         }
@@ -790,70 +877,30 @@
       <h3>Détails — {{ detailsUtilisateur()!.prenom }} {{ detailsUtilisateur()!.nom }}</h3>
       <table class="table-comptes">
         <tbody>
-          <tr>
-            <td><strong>E-mail</strong></td>
-            <td>{{ detailsUtilisateur()!.email }}</td>
-          </tr>
-          <tr>
-            <td><strong>Rôle</strong></td>
-            <td>{{ detailsUtilisateur()!.role }}</td>
-          </tr>
+          <tr><td><strong>E-mail</strong></td><td>{{ detailsUtilisateur()!.email }}</td></tr>
+          <tr><td><strong>Rôle</strong></td><td>{{ detailsUtilisateur()!.role }}</td></tr>
           @if (detailsUtilisateur()!.enseignant) {
-          <tr>
-            <td><strong>Spécialité</strong></td>
-            <td>{{ detailsUtilisateur()!.enseignant.specialite }}</td>
-          </tr>
-          <tr>
-            <td><strong>Grade</strong></td>
-            <td>{{ detailsUtilisateur()!.enseignant.grade }}</td>
-          </tr>
+          <tr><td><strong>Spécialité</strong></td><td>{{ detailsUtilisateur()!.enseignant.specialite }}</td></tr>
+          <tr><td><strong>Grade</strong></td><td>{{ detailsUtilisateur()!.enseignant.grade }}</td></tr>
           }
           @if (detailsUtilisateur()!.etudiant) {
-          <tr>
-            <td><strong>Matricule</strong></td>
-            <td>{{ detailsUtilisateur()!.etudiant.matricule }}</td>
-          </tr>
-          <tr>
-            <td><strong>Date naissance</strong></td>
-            <td>{{ detailsUtilisateur()!.etudiant.dateNaissance }}</td>
-          </tr>
-          <tr>
-            <td><strong>Lieu naissance</strong></td>
-            <td>{{ detailsUtilisateur()!.etudiant.lieuNaissance }}</td>
-          </tr>
-          <tr>
-            <td><strong>Filière</strong></td>
-            <td>{{ detailsUtilisateur()!.etudiant.filiere }}</td>
-          </tr>
+          <tr><td><strong>Matricule</strong></td><td>{{ detailsUtilisateur()!.etudiant.matricule }}</td></tr>
+          <tr><td><strong>Date naissance</strong></td><td>{{ detailsUtilisateur()!.etudiant.dateNaissance }}</td></tr>
+          <tr><td><strong>Lieu naissance</strong></td><td>{{ detailsUtilisateur()!.etudiant.lieuNaissance }}</td></tr>
+          <tr><td><strong>Filière</strong></td><td>{{ detailsUtilisateur()!.etudiant.filiere }}</td></tr>
           @if (detailsUtilisateur()!.etudiant.inscription && detailsUtilisateur()!.etudiant.inscription.length > 0) {
-          <tr>
-            <td><strong>Classe</strong></td>
-            <td>{{ detailsUtilisateur()!.etudiant.inscription[0].classe?.nomClasse }}</td>
-          </tr>
+          <tr><td><strong>Classe</strong></td><td>{{ detailsUtilisateur()!.etudiant.inscription[0].classe?.nomClasse }}</td></tr>
           }
           }
           @if (detailsUtilisateur()!.parent_etudiant) {
-          <tr>
-            <td><strong>Téléphone</strong></td>
-            <td>{{ detailsUtilisateur()!.parent_etudiant.telephone }}</td>
-          </tr>
-          <tr>
-            <td><strong>Profession</strong></td>
-            <td>{{ detailsUtilisateur()!.parent_etudiant.profession }}</td>
-          </tr>
-          <tr>
-            <td><strong>Adresse</strong></td>
-            <td>{{ detailsUtilisateur()!.parent_etudiant.adresse }}</td>
-          </tr>
-          <tr>
-            <td><strong>Lien parental</strong></td>
-            <td>{{ detailsUtilisateur()!.parent_etudiant.lienParents }}</td>
-          </tr>
+          <tr><td><strong>Téléphone</strong></td><td>{{ detailsUtilisateur()!.parent_etudiant.telephone }}</td></tr>
+          <tr><td><strong>Profession</strong></td><td>{{ detailsUtilisateur()!.parent_etudiant.profession }}</td></tr>
+          <tr><td><strong>Adresse</strong></td><td>{{ detailsUtilisateur()!.parent_etudiant.adresse }}</td></tr>
+          <tr><td><strong>Lien parental</strong></td><td>{{ detailsUtilisateur()!.parent_etudiant.lienParents }}</td></tr>
           @if (detailsUtilisateur()!.parent_etudiant.etudiants?.length > 0) {
           <tr>
             <td><strong>Enfants liés</strong></td>
-            <td>
-              @for (e of detailsUtilisateur()!.parent_etudiant.etudiants; track e.id) {
+            <td>@for (e of detailsUtilisateur()!.parent_etudiant.etudiants; track e.id) {
               {{ e.user?.prenom }} {{ e.user?.nom }} ({{ e.matricule }})<br>
               }
             </td>
@@ -861,18 +908,9 @@
           }
           }
           @if (detailsUtilisateur()!.chef_departement) {
-          <tr>
-            <td><strong>Spécialité</strong></td>
-            <td>{{ detailsUtilisateur()!.chef_departement.specialite }}</td>
-          </tr>
-          <tr>
-            <td><strong>Grade</strong></td>
-            <td>{{ detailsUtilisateur()!.chef_departement.grade }}</td>
-          </tr>
-          <tr>
-            <td><strong>Mandat</strong></td>
-            <td>{{ detailsUtilisateur()!.chef_departement.mandat }}</td>
-          </tr>
+          <tr><td><strong>Spécialité</strong></td><td>{{ detailsUtilisateur()!.chef_departement.specialite }}</td></tr>
+          <tr><td><strong>Grade</strong></td><td>{{ detailsUtilisateur()!.chef_departement.grade }}</td></tr>
+          <tr><td><strong>Mandat</strong></td><td>{{ detailsUtilisateur()!.chef_departement.mandat }}</td></tr>
           }
         </tbody>
       </table>
@@ -883,12 +921,8 @@
 
   @if (bulletinVu()) {
   <div class="overlay-modal" (click)="bulletinVu.set(null)">
-    <div class="modal-details" style="max-width:860px;width:97%;max-height:90vh;overflow-y:auto;"
-      (click)="$event.stopPropagation()">
-
-      <!-- En-tête ISI -->
-      <div
-        style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a56db;padding-bottom:1rem;margin-bottom:1rem;">
+    <div class="modal-details" style="max-width:860px;width:97%;max-height:90vh;overflow-y:auto;" (click)="$event.stopPropagation()">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a56db;padding-bottom:1rem;margin-bottom:1rem;">
         <div style="display:flex;align-items:center;gap:0.75rem;">
           <img src="isi.jpg" alt="ISI" style="height:48px;" />
           <div>
@@ -902,47 +936,32 @@
           <p style="margin:0;font-size:0.8rem;color:#888;">Session : {{ bulletinVu().session ?? 'Normale' }}</p>
         </div>
       </div>
-
-      <!-- Infos étudiant -->
-      <div
-        style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1.5rem;font-size:0.85rem;margin-bottom:1rem;padding:0.75rem;background:#f8faff;border-radius:6px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 1.5rem;font-size:0.85rem;margin-bottom:1rem;padding:0.75rem;background:#f8faff;border-radius:6px;">
         <div><strong>Année académique :</strong> {{ bulletinVu().infos_etudiant?.anneeAcademique ?? '—' }}</div>
-        <div><strong>Matricule :</strong> {{ bulletinVu().infos_etudiant?.matricule ?? bulletinVu().etudiant?.matricule
-          ?? '—' }}</div>
-        <div><strong>Prénom et nom :</strong> {{ bulletinVu().etudiant?.user ? (bulletinVu().etudiant.user.prenom + ' '
-          + bulletinVu().etudiant.user.nom) : (bulletinVu().etudiant ?? '—') }}</div>
+        <div><strong>Matricule :</strong> {{ bulletinVu().infos_etudiant?.matricule ?? bulletinVu().etudiant?.matricule ?? '—' }}</div>
+        <div><strong>Prénom et nom :</strong> {{ bulletinVu().etudiant?.user ? (bulletinVu().etudiant.user.prenom + ' ' + bulletinVu().etudiant.user.nom) : (bulletinVu().etudiant ?? '—') }}</div>
         <div><strong>Sexe :</strong> {{ bulletinVu().infos_etudiant?.sexe ?? '—' }}</div>
-        <div><strong>Date et lieu de naissance :</strong> {{ bulletinVu().infos_etudiant?.dateNaissance ?? '—' }} à {{
-          bulletinVu().infos_etudiant?.lieuNaissance ?? '—' }}</div>
+        <div><strong>Date et lieu de naissance :</strong> {{ bulletinVu().infos_etudiant?.dateNaissance ?? '—' }} à {{ bulletinVu().infos_etudiant?.lieuNaissance ?? '—' }}</div>
         <div><strong>Classe :</strong> {{ bulletinVu().infos_etudiant?.classe ?? '—' }}</div>
         <div><strong>Filière :</strong> {{ bulletinVu().infos_etudiant?.filiere ?? '—' }}</div>
         <div><strong>Diplôme :</strong> {{ bulletinVu().infos_etudiant?.diplome ?? '—' }}</div>
       </div>
-
-      <!-- Tableau détaillé par UE -->
       @if (bulletinVu().details && bulletinVu().details.length > 0) {
       @for (d of bulletinVu().details; track d.id) {
       <div style="margin-bottom:1rem;">
-        <div
-          style="background:#1a56db;color:white;padding:0.4rem 0.75rem;font-weight:600;font-size:0.85rem;border-radius:4px 4px 0 0;">
+        <div style="background:#1a56db;color:white;padding:0.4rem 0.75rem;font-weight:600;font-size:0.85rem;border-radius:4px 4px 0 0;">
           {{ d.ue?.libelle ?? 'UE ' + d.ue_id }}
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
           <thead>
             <tr style="background:#e8f0fe;">
               <th style="padding:5px 8px;text-align:left;border:1px solid #d0d9f0;">Éléments constitutifs</th>
-              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">MCC<br><span
-                  style="font-weight:normal;font-size:0.75rem;">40%</span></th>
-              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Examen<br><span
-                  style="font-weight:normal;font-size:0.75rem;">60%</span></th>
-              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moy<br><span
-                  style="font-weight:normal;font-size:0.75rem;">EC</span></th>
-              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Coef<br><span
-                  style="font-weight:normal;font-size:0.75rem;">EC</span></th>
-              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">
-                Moyenne<br><span style="font-weight:normal;font-size:0.75rem;">×Coef</span></th>
-              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Appréciation
-              </th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">MCC<br><span style="font-weight:normal;font-size:0.75rem;">40%</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Examen<br><span style="font-weight:normal;font-size:0.75rem;">60%</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moy<br><span style="font-weight:normal;font-size:0.75rem;">EC</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Coef<br><span style="font-weight:normal;font-size:0.75rem;">EC</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Moyenne<br><span style="font-weight:normal;font-size:0.75rem;">×Coef</span></th>
+              <th style="padding:5px 6px;text-align:center;border:1px solid #d0d9f0;white-space:nowrap;">Appréciation</th>
             </tr>
           </thead>
           <tbody>
@@ -951,29 +970,19 @@
               <td style="padding:4px 8px;border:1px solid #e5e9f5;">{{ m.libelle }}</td>
               <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.mcc ?? '—' }}</td>
               <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.examen ?? '—' }}</td>
-              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;font-weight:600;">{{
-                m.moyenne_module ?? '—' }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;font-weight:600;">{{ m.moyenne_module ?? '—' }}</td>
               <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ m.coefficient }}</td>
-              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ (m.moyenne_module &&
-                m.coefficient) ? (m.moyenne_module * m.coefficient).toFixed(2) : '—' }}</td>
-              <td style="padding:4px 8px;border:1px solid #e5e9f5;font-size:0.78rem;color:#555;">{{ d.appreciation }}
-              </td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #e5e9f5;">{{ (m.moyenne_module && m.coefficient) ? (m.moyenne_module * m.coefficient).toFixed(2) : '—' }}</td>
+              <td style="padding:4px 8px;border:1px solid #e5e9f5;font-size:0.78rem;color:#555;">{{ d.appreciation }}</td>
             </tr>
             }
             <tr style="background:#f0f4ff;">
-              <td colspan="4"
-                style="padding:4px 8px;border:1px solid #d0d9f0;text-align:right;font-size:0.78rem;color:#666;">Moyenne
-                UE :</td>
-              <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{
-                d.ue?.credits }}</td>
-              <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{
-                d.moyenne_ue }}/20</td>
+              <td colspan="4" style="padding:4px 8px;border:1px solid #d0d9f0;text-align:right;font-size:0.78rem;color:#666;">Moyenne UE :</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{ d.ue?.credits }}</td>
+              <td style="padding:4px 6px;text-align:center;border:1px solid #d0d9f0;font-weight:700;color:#1a56db;">{{ d.moyenne_ue }}/20</td>
               <td style="padding:4px 8px;border:1px solid #d0d9f0;font-size:0.78rem;">
-                @if (d.valide) {
-                <span style="color:#166534;font-weight:600;">Validée</span>
-                } @else {
-                <span style="color:#b91c1c;font-weight:600;">Non validée</span>
-                }
+                @if (d.valide) { <span style="color:#166534;font-weight:600;">Validée</span> }
+                @else { <span style="color:#b91c1c;font-weight:600;">Non validée</span> }
               </td>
             </tr>
           </tbody>
@@ -981,10 +990,7 @@
       </div>
       }
       }
-
-      <!-- Récap semestre -->
-      <div
-        style="display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border-radius:8px;padding:1rem;margin-top:0.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border-radius:8px;padding:1rem;margin-top:0.5rem;">
         <div>
           <p style="margin:0;font-size:0.8rem;color:#666;">Total crédits obtenus</p>
           <p style="margin:0;font-size:1.1rem;font-weight:700;color:#1a56db;">
@@ -994,18 +1000,59 @@
         </div>
         <div style="text-align:center;">
           <p style="margin:0;font-size:0.8rem;color:#666;">Moyenne du semestre</p>
-          <p style="margin:0;font-size:1.8rem;font-weight:700;color:#1a56db;">{{ bulletinVu().moyenne_generale ??
-            bulletinVu().moyenne }}/20</p>
+          <p style="margin:0;font-size:1.8rem;font-weight:700;color:#1a56db;">{{ bulletinVu().moyenne_generale ?? bulletinVu().moyenne }}/20</p>
         </div>
         <div style="text-align:right;">
           <p style="margin:0;font-size:0.8rem;color:#666;">Mention</p>
           <p style="margin:0;font-size:1.1rem;font-weight:600;color:#1a56db;">{{ bulletinVu().mention }}</p>
         </div>
       </div>
-
       <div style="text-align:right;margin-top:1.5rem;">
         <button type="button" class="bouton-principal" (click)="bulletinVu.set(null)">Fermer</button>
       </div>
+    </div>
+  </div>
+  }
+
+  @if (profilOuvert()) {
+  <div class="overlay-modal" (click)="profilOuvert.set(false); profilEnEdition.set(false)">
+    <div class="modal-details" (click)="$event.stopPropagation()" style="max-width:480px;">
+      <h3>Mon profil</h3>
+      @if (!profilEnEdition()) {
+      <table class="table-comptes">
+        <tbody>
+          <tr><td><strong>Prénom</strong></td><td>{{ profil()?.prenom ?? '—' }}</td></tr>
+          <tr><td><strong>Nom</strong></td><td>{{ profil()?.nom ?? '—' }}</td></tr>
+          <tr><td><strong>Email</strong></td><td>{{ profil()?.email ?? '—' }}</td></tr>
+          <tr><td><strong>Rôle</strong></td><td>Administrateur</td></tr>
+        </tbody>
+      </table>
+      <div class="actions-formulaire" style="margin-top:1rem;">
+        <button type="button" class="bouton-annuler" (click)="profilOuvert.set(false)">Fermer</button>
+        <button type="button" class="bouton-principal" (click)="profilEnEdition.set(true)">✏️ Modifier</button>
+      </div>
+      } @else {
+      <div class="champ">
+        <label>Prénom</label>
+        <input type="text" [(ngModel)]="prenomProfil" [ngModelOptions]="{standalone:true}" />
+      </div>
+      <div class="champ">
+        <label>Nom</label>
+        <input type="text" [(ngModel)]="nomProfil" [ngModelOptions]="{standalone:true}" />
+      </div>
+      <div class="champ">
+        <label>Nouveau mot de passe <span style="font-size:0.8rem;color:#888;">(laisser vide pour ne pas changer)</span></label>
+        <input type="password" [(ngModel)]="motDePasseProfil" [ngModelOptions]="{standalone:true}" placeholder="Nouveau mot de passe" />
+      </div>
+      <div class="champ">
+        <label>Confirmer le mot de passe</label>
+        <input type="password" [(ngModel)]="motDePasseProfilConfirme" [ngModelOptions]="{standalone:true}" placeholder="Confirmer" />
+      </div>
+      <div class="actions-formulaire" style="margin-top:1rem;">
+        <button type="button" class="bouton-annuler" (click)="profilEnEdition.set(false)">Annuler</button>
+        <button type="button" class="bouton-principal" (click)="sauvegarderProfil()">💾 Enregistrer</button>
+      </div>
+      }
     </div>
   </div>
   }
